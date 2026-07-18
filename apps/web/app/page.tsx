@@ -33,7 +33,8 @@ export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const likeCount = useLikeCount();
-  const submitLike = useSubmitLike();
+  const likeSubmit = useSubmitLike();
+  const storySubmit = useSubmitLike();
 
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
@@ -44,7 +45,7 @@ export default function Home() {
     const trimmedStory = values.story?.trim();
     const trimmedHours = values.hoursSaved?.trim();
 
-    submitLike.mutate(
+    storySubmit.mutate(
       {
         story: trimmedStory ? trimmedStory : undefined,
         hoursSaved: trimmedHours ? Number(trimmedHours) : undefined,
@@ -62,29 +63,36 @@ export default function Home() {
     <main>
       <h1>Thanks, Claude</h1>
 
-      {likeCount.isError && (
-        <p role="alert">Couldn't load the like count. Please refresh the page.</p>
-      )}
-      {submitLike.isError && (
+      {likeSubmit.isError && (
         <p role="alert">Couldn't submit your like. Please try again.</p>
       )}
 
       <p>
-        <Button onClick={() => submitLike.mutate({})} disabled={submitLike.isPending}>
+        <Button onClick={() => likeSubmit.mutate({})} disabled={likeSubmit.isPending}>
           Like
         </Button>{" "}
-        {likeCount.isLoading || likeCount.data === undefined
-          ? "loading…"
-          : `${likeCount.data} likes`}
+        {likeCount.isError ? (
+          <span role="alert">
+            Unable to load like count.{" "}
+            <button onClick={() => likeCount.refetch()}>Retry</button>
+          </span>
+        ) : likeCount.isLoading || likeCount.data === undefined ? (
+          "loading…"
+        ) : (
+          `${likeCount.data} likes`
+        )}
       </p>
 
-      <button onClick={() => setIsExpanded((prev) => !prev)}>
+      <Button onClick={() => setIsExpanded((prev) => !prev)}>
         {isExpanded ? "Hide story" : "Share a story"}
-      </button>
+      </Button>
 
       {isExpanded && (
         <Form {...form}>
           <form onSubmit={form.handleSubmit(handleStorySubmit)}>
+            {storySubmit.isError && (
+              <p role="alert">Couldn't submit your story. Please try again.</p>
+            )}
             <FormField
               control={form.control}
               name="story"
@@ -111,7 +119,7 @@ export default function Home() {
                 </FormItem>
               )}
             />
-            <Button type="submit" disabled={submitLike.isPending}>
+            <Button type="submit" disabled={storySubmit.isPending}>
               Submit
             </Button>
           </form>

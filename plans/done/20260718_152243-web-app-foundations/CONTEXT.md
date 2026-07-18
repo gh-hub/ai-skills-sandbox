@@ -14,9 +14,9 @@ Foundational front-end tooling for `apps/web`: Tailwind v4 + shadcn/ui, dark mod
 - No test framework added — out of scope
 
 ## Current state
-Phase: review
+Phase: complete
 Completed tickets: 01-styling-providers-foundation, 02-dark-mode-toggle, 03-typed-api-client-generation, 04-like-count-submission-query, 05-story-form-rhf-zod
-Current ticket: none — all tickets implemented, ready for review/round-1
+Plan complete. Review round-1: 0 BLOCK, 6 DEBT (exported to plans/tech-debt/).
 
 ## Tickets
 - 01-styling-providers-foundation — Tailwind v4 + shadcn/ui init, Providers wrapper, base shadcn components (prefactor, blocked by none) — DONE

@@ -4,7 +4,7 @@
 Foundational front-end tooling for apps/web — Tailwind v4 + shadcn/ui, dark mode, TanStack Query + a typed API client, and React Hook Form + Zod — applied to the app's existing page.
 
 ## Status
-Current phase: implement
+Current phase: complete
 
 ## Links
 - [PROGRESS.md](PROGRESS.md)
@@ -12,5 +12,5 @@ Current phase: implement
 - [Grill output](grill/)
 - [Spec](spec.md)
 - [Tickets](tickets/)
-- [Review](review/)
+- [Review round 1](review/round-1/report.md)
 - [Tech debt](review/tech-debt.md)
