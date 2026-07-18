@@ -132,7 +132,7 @@ Update `PROGRESS.md`:
 - Mark `review/round-{N}` as complete
 - Record user decision
 - If fixing: set current phase to implement (round-N tickets)
-- If done/accepted: mark plan complete
+- If done/accepted: mark plan complete with timestamp
 
 Update `CONTEXT.md`:
 - Add review round outcome
@@ -140,10 +140,21 @@ Update `CONTEXT.md`:
 
 Update `INDEX.md`:
 - Add link to review/round-{N}/report.md
-- Update status
+- Update status to `done` or `fixing`
 
-### 11. Hand off
+### 11. Archive if complete
+
+If the user chose option 2 or 3 (plan is done):
+
+Create `plans/done/` if it doesn't exist, then move the plan folder there:
+```
+plans/done/YYYYMMDD_HHMMSS-{name}/
+```
+
+This keeps `plans/` showing only in-progress work.
+
+### 12. Hand off
 
 **If fixing BLOCKs**: "Start a new session and run `/dev-workflow` to implement the review fixes."
 
-**If done**: "Plan complete. Review tech-debt.md for logged debt items."
+**If done**: "Plan complete. Moved to plans/done/{folder}. Review tech-debt.md for logged debt items."

@@ -2,9 +2,21 @@
 
 Canonical definition of every file and folder inside a plan.
 
-## Folder name
+## Folder layout
 
-`plans/YYYYMMDD_HHMMSS-{name}/`
+```
+plans/
+  coding-rules/          ← shared across all plans, never moved
+  done/                  ← completed plans, moved here by the review phase
+    YYYYMMDD_HHMMSS-{name}/
+  YYYYMMDD_HHMMSS-{name}/  ← in-progress plans (only these show here)
+```
+
+Plans in `plans/` root are in-progress. When review marks a plan complete it moves to `plans/done/`. `coding-rules/` stays at the root always.
+
+## Plan folder name
+
+`YYYYMMDD_HHMMSS-{name}/`
 
 Timestamp is to-the-second so plans sort chronologically. Name is short and slug-friendly (e.g. `auth-refactor`, `user-dashboard`).
 
