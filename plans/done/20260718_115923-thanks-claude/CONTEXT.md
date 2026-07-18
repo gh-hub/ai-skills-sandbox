@@ -22,7 +22,7 @@ A monorepo (apps/api NestJS, apps/web static Next.js, packages/ shared types) wi
 ## Current state
 Phase: review
 Completed tickets: 01-monorepo-scaffold, 02-like-count-api, 03-like-button-ui, review/round-1/tickets/01-frontend-network-error-handling, review/round-2/tickets/01-fix-error-clear-regression
-Current ticket: (none) — review round-3 complete, 0 BLOCKs; round-3 DEBT item fixed same day; remaining pre-existing DEBT logged in tech-debt.md, awaiting user decision (reply "done" to archive, or address more DEBT first)
+Current ticket: (none) — Plan complete. 9 open DEBT items exported to plans/tech-debt/.
 
 ## Load this session
 - plans/20260718_115923-thanks-claude/tickets/*.md — all tickets, for review scope

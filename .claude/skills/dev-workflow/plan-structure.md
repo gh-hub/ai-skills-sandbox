@@ -7,12 +7,14 @@ Canonical definition of every file and folder inside a plan.
 ```
 plans/
   coding-rules/          ← shared across all plans, never moved
+  tech-debt/              ← global backlog, one file per open DEBT item, written by the review phase's archive step
+    YYYYMMDD_HHMMSS-{slug}.md
   done/                  ← completed plans, moved here by the review phase
     YYYYMMDD_HHMMSS-{name}/
   YYYYMMDD_HHMMSS-{name}/  ← in-progress plans (only these show here)
 ```
 
-Plans in `plans/` root are in-progress. When review marks a plan complete it moves to `plans/done/`. `coding-rules/` stays at the root always.
+Plans in `plans/` root are in-progress. When review marks a plan complete it moves to `plans/done/`. `coding-rules/` and `tech-debt/` stay at the root always.
 
 ## Plan folder name
 
@@ -178,6 +180,41 @@ Findings are tagged:
 - `DEBT` — real problem, logged to tech-debt.md, not a blocker
 
 After round 2, any remaining BLOCKs are flagged to the user. The user decides: fix (round 3), accept as debt, or escalate. The loop does not continue silently.
+
+A `DEBT` item that gets fixed out-of-band (not through the formal ticket flow) is marked in place as `[FIXED, {date}]` — it stays in `tech-debt.md` as history, it is not deleted.
+
+When the plan archives (`done`/`accept`), every remaining `[DEBT]` line (not `[FIXED, ...]`) is exported to `plans/tech-debt/` as its own file, and the line here is annotated ` — moved to plans/tech-debt/{filename}`. See `plans/tech-debt/` below.
+
+---
+
+## plans/tech-debt/
+
+Lives at the project root (not inside a plan folder), populated only by the review phase's archive step (`phases/review.md`, step 10) — one file per DEBT item still open when its plan archived.
+
+```
+tech-debt/
+  YYYYMMDD_HHMMSS-{slug}.md
+  YYYYMMDD_HHMMSS-{slug}.md
+  ...
+```
+
+Timestamp is when the item was exported (archive time), not when it was originally found. File contents:
+
+```markdown
+# {slug}
+
+## Finding
+{the DEBT finding, verbatim}
+
+## Source
+- Plan: plans/done/{plan-folder}/
+- Round: round-{N}
+- Category: Standards / Spec
+- Logged: {original date found}
+- Moved: {archive date}
+```
+
+dev-workflow only ever writes here — it does not read this folder, evaluate any file in it, or decide what happens to it next. That judgment (is this still relevant, is it worth fixing, should it become a plan) is out of scope for dev-workflow entirely.
 
 ---
 

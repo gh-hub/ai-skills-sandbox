@@ -4,7 +4,7 @@
 A monorepo (NestJS API + static Next.js frontend) where users can "like" a thank-you page for Claude and optionally leave a note about how Claude helped them and time saved.
 
 ## Status
-Current phase: review — round 3 complete, 0 BLOCKs, awaiting user decision
+Current phase: complete — archived to plans/done/
 
 ## Links
 - [PROGRESS.md](PROGRESS.md)

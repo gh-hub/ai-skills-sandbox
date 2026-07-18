@@ -162,7 +162,33 @@ Update `INDEX.md`:
 - Add link to `review/round-{N}/report.md`
 - Update status: `fixing` / `complete` / `review-paused`
 
-### 10. Archive if complete
+### 10. Export open DEBT to the backlog
+
+Archive only when the user's decision was `done` or `accept`. Do this step only in that case.
+
+Read `plans/{folder}/review/tech-debt.md`. For every line tagged `[DEBT]` (not `[FIXED, ...]`):
+- Create `plans/tech-debt/` if it doesn't exist.
+- Write `plans/tech-debt/YYYYMMDD_HHMMSS-{slug}.md` (timestamp = now, to-the-second). `{slug}` is a short label for the finding (e.g. `api-db-bypasses-di`). Content:
+  ```markdown
+  # {slug}
+
+  ## Finding
+  {the DEBT finding, verbatim}
+
+  ## Source
+  - Plan: plans/done/{plan-folder}/
+  - Round: round-{N}
+  - Category: Standards / Spec
+  - Logged: {original date found}
+  - Moved: {today's date}
+  ```
+- Edit that line in the plan's local `tech-debt.md` to append ` — moved to plans/tech-debt/{filename}`, so the archived plan's own log still shows where each item went.
+
+Lines already marked `[FIXED, ...]` are untouched — they're history, not exported.
+
+This step is purely mechanical: write out findings already on record from this plan's own review rounds. Nothing here evaluates whether an item is still relevant, still worth fixing, or should be discarded — that judgment happens later, elsewhere, against the backlog as a whole, not against one plan's slice of it.
+
+### 11. Archive if complete
 
 Archive only when the user's decision was `done` or `accept`.
 
@@ -173,10 +199,10 @@ Create `plans/done/` if it doesn't exist, then move the plan folder:
 plans/done/YYYYMMDD_HHMMSS-{name}/
 ```
 
-### 11. Hand off
+### 12. Hand off
 
 **If fixing or escalating**: "Start a new session and run `/dev-workflow` to implement the review fixes."
 
-**If done or accepted**: "Plan complete. Moved to `plans/done/{folder}`. Review `tech-debt.md` for logged debt items."
+**If done or accepted**: "Plan complete. Moved to `plans/done/{folder}`. {N} open DEBT item(s) exported to `plans/tech-debt/`."
 
 **If stopped**: "Review paused at round {N}. Plan remains at `plans/{folder}`. Run `/dev-workflow` to resume when ready."
