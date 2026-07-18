@@ -14,10 +14,10 @@ Implement one ticket. One ticket = one session. Do not implement more than one t
 ### 1. Load context
 
 Read in this order:
-1. `plans/{folder}/CONTEXT.md` — orientation and current ticket path
-2. `plans/{folder}/PROGRESS.md` — confirm which ticket is current
-3. The ticket file at the exact path listed in CONTEXT.md under "Current ticket" — do not construct this path yourself; it may be under `tickets/` for original work or `review/round-N/tickets/` for review fixes
-4. `plans/coding-rules/INDEX.md` — then load only the rule files that apply to this ticket's tech stack
+1. `plans/{folder}/PROGRESS.md` — source of truth. Confirm the current phase is an `implement/*` phase. If it is not, stop and tell the user — do not proceed. Take the ticket file path from the `Current ticket path` field.
+2. `plans/{folder}/CONTEXT.md` — orientation. If "Current ticket" in CONTEXT.md disagrees with `Current ticket path` in PROGRESS.md, PROGRESS.md wins — correct CONTEXT.md before continuing.
+3. The ticket file at the path from PROGRESS.md's `Current ticket path` field. Do not construct this path yourself — it may be under `tickets/` for original work or `review/round-N/tickets/` for review fixes.
+4. `plans/coding-rules/INDEX.md` — then load only the rule files that apply to this ticket's tech stack.
 
 Do not read the full spec or grill output unless CONTEXT.md links to something specific you need.
 
@@ -46,16 +46,17 @@ Go through each acceptance criterion in the ticket. Mark each one complete (or n
 
 ### 6. Update plan files
 
-Update `CONTEXT.md`:
+Update `PROGRESS.md` first:
+- Mark this ticket as complete with timestamp
+- Set current phase to the next ticket slug or `review` if all tickets done
+- Set `Current ticket path` to the full path of the next ticket, or `(none)` if all tickets done
+- Write last session end-state: what was built, what the next session needs to know
+
+Then update `CONTEXT.md`:
 - Move completed ticket to "Completed tickets"
-- Set current ticket to the next one (or "none" if all done)
+- Set current ticket to the full path of the next ticket (or "none" if all done)
 - Update "Load this session" for the next session
 - Add any gotchas discovered during implementation
-
-Update `PROGRESS.md`:
-- Mark this ticket as complete with timestamp
-- Set current phase to the next ticket or `review` if all tickets done
-- Write last session end-state: what was built, what the next session needs to know
 
 ### 7. Hand off
 

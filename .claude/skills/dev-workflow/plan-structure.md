@@ -101,6 +101,9 @@ Machine-readable state tracker. The orchestrator reads this to know where to res
 ## Current phase
 grill
 
+## Current ticket path
+(none — set to full file path when an implement phase starts)
+
 ## Phases
 - [ ] grill
 - [ ] spec
@@ -115,6 +118,8 @@ grill
 ## Last session end-state
 What was done, what comes next — written at end of each session.
 ```
+
+`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
 
 ---
 
@@ -182,6 +187,8 @@ Lives at the project root level (not inside a plan folder). Shared across all pl
 
 ### INDEX.md template
 
+Only list files that actually exist. Do not add rows for files that haven't been created yet — a missing file is worse than a missing row.
+
 ```markdown
 # Coding Rules Index
 
@@ -192,16 +199,20 @@ Load this file at the start of every implement and review session. Then load onl
 | File | Load when |
 |---|---|
 | [general.md](general.md) | Always |
+
+<!-- Add a row here each time you create a new rules file, e.g.:
 | [python.md](python.md) | Ticket touches Python code |
 | [nextjs.md](nextjs.md) | Ticket touches Next.js / React |
-| [nestjs.md](nestjs.md) | Ticket touches NestJS |
-| [electron.md](electron.md) | Ticket touches Electron |
+-->
 
 ## Repo-specific overrides
 
 | File | Load when |
 |---|---|
-| [repos/](repos/) | Check for a file matching the current repo name |
+
+<!-- Add a row here when you create a repo-specific file under repos/, e.g.:
+| [repos/my-app.md](repos/my-app.md) | Working in the my-app repo |
+-->
 
 Repo-specific rules override general rules where they conflict.
 ```

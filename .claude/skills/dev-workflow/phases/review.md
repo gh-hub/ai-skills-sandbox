@@ -13,13 +13,14 @@ Review all implemented work against two axes — does it follow the coding stand
 
 ### 1. Load context
 
-Read:
+Read `plans/{folder}/PROGRESS.md` first — source of truth. Confirm the current phase is `review`. If it is not, stop and tell the user — do not proceed.
+
+Determine the round number: count existing `plans/{folder}/review/round-N/` folders + 1. If PROGRESS.md records a specific round, that takes precedence.
+
+Then read:
 - `plans/{folder}/CONTEXT.md`
-- `plans/{folder}/PROGRESS.md` — to determine round number
 - `plans/{folder}/spec.md` — the spec to check against
 - `plans/coding-rules/INDEX.md` — load relevant rule files
-
-Determine the round number: count existing `plans/{folder}/review/round-N/` folders + 1.
 
 Create `plans/{folder}/review/round-{N}/`.
 
@@ -58,15 +59,17 @@ Confirm the diff is non-empty before spawning sub-agents.
 
 ### 4. Spawn both sub-agents in parallel
 
+Use `subagent_type: general-purpose` for both. Each sub-agent has Bash tool access and must run `git diff` itself — do not paste the diff into the prompt, that doubles context cost for no benefit.
+
 **Standards sub-agent prompt** — include:
-- The full diff command
-- The standards files and smell baseline (paste in full — sub-agent has no other access)
-- Brief: "Report per file/hunk: (a) every place the diff violates a documented standard — cite the standard; (b) any smell you spot — name it and quote the hunk. Tag each finding BLOCK (must fix before ship) or DEBT (real problem, not a blocker). Distinguish hard violations from judgement calls. Skip anything tooling enforces. Under 400 words."
+- The exact diff command to run: `git diff {base-branch}...HEAD`
+- The standards file contents and smell baseline pasted in full (sub-agent has no filesystem access to the plan folder)
+- Brief: "Run the diff command with Bash, then report per file/hunk: (a) every place the diff violates a documented standard — cite the standard; (b) any smell you spot — name it and quote the hunk. Tag each finding BLOCK (must fix before ship) or DEBT (real problem, not a blocker). Distinguish hard violations from judgement calls. Skip anything tooling enforces. Under 400 words."
 
 **Spec sub-agent prompt** — include:
-- The diff command
-- The full spec contents
-- Brief: "Report: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Tag each finding BLOCK or DEBT. Quote the spec line for each finding. Under 400 words."
+- The exact diff command to run: `git diff {base-branch}...HEAD`
+- The full spec contents pasted in (sub-agent has no filesystem access to the plan folder)
+- Brief: "Run the diff command with Bash, then report: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Tag each finding BLOCK or DEBT. Quote the spec line for each finding. Under 400 words."
 
 ### 5. Write the report
 
@@ -103,58 +106,77 @@ If any BLOCKs exist, write tickets to `plans/{folder}/review/round-{N}/tickets/`
 
 Use the same ticket format as `phases/tickets.md`.
 
-### 8. Round limit check
+### 8. User checkpoint
 
-If this is round 2 or higher and BLOCKs still remain, flag this explicitly:
-> "This is round {N}. BLOCKs remain. Continuing to fix these automatically is stopped here."
-
-### 9. User checkpoint
-
-Present to the user:
-
+If **no BLOCKs** remain:
 ```
-Review round {N} complete.
+Review round {N} complete. No blockers.
+DEBT findings: {count} — logged to tech-debt.md
 
-BLOCK findings: {N} — [link to report]
-DEBT findings: {N} — [link to tech-debt.md]
-
-Options:
-1. Fix BLOCKs — new tickets written to review/round-{N}/tickets/, start a new session
-2. Accept remaining issues as debt — plan marked complete
-3. Done — no BLOCKs, ship it
+Plan is ready to ship. Reply "done" to archive it.
 ```
 
-Wait for the user's decision. Do not continue autonomously.
+If **BLOCKs remain and this is round 1**:
+```
+Review round 1 complete.
+BLOCK findings: {count} — [link to report]
+DEBT findings: {count} — logged to tech-debt.md
 
-### 10. Update plan files
+  "fix"    — implement the tickets written to review/round-1/tickets/
+  "accept" — log BLOCKs as debt and mark plan complete
+
+Reply with one of those two words.
+```
+
+If **BLOCKs remain and this is round 2 or higher** — hard gate, different prompt:
+```
+Review round {N} complete. BLOCKs still remain after {N} rounds.
+
+This is beyond the standard 2-round limit. You must make an explicit choice:
+  "escalate" — continue to round {N+1} (you take ownership of the extra cost)
+  "accept"   — log remaining BLOCKs as debt and archive the plan
+  "stop"     — leave the plan in-progress, no archive
+
+Reply with one of those three words.
+```
+
+Do not offer the "fix" option at round 2+. Do not continue autonomously under any circumstance.
+
+### 9. Update plan files
+
+Write to `PROGRESS.md` first, then update `CONTEXT.md` to match. PROGRESS.md is the source of truth — if interrupted between the two writes, PROGRESS.md wins.
 
 Update `PROGRESS.md`:
-- Mark `review/round-{N}` as complete
-- Record user decision
-- If fixing: set current phase to implement (round-N tickets)
-- If done/accepted: mark plan complete with timestamp
+- Mark `review/round-{N}` as complete with timestamp
+- Record the user's exact decision: `done` / `fix` / `accept` / `escalate` / `stop`
+- If `fix` or `escalate`: set current phase to `implement`, set `Current ticket path` to `plans/{folder}/review/round-{N}/tickets/01-{slug}.md`
+- If `done` or `accept`: mark plan complete with timestamp
+- If `stop`: record `review paused at round {N} — left in-progress by user`
 
 Update `CONTEXT.md`:
-- Add review round outcome
-- If fixing: set current ticket to round-N ticket 01
+- If fixing or escalating: set current ticket to `plans/{folder}/review/round-{N}/tickets/01-{slug}.md`
+- If done or accepted: add `Plan complete`
+- If stopped: add `Review paused at round {N} — run /dev-workflow to resume`
 
 Update `INDEX.md`:
-- Add link to review/round-{N}/report.md
-- Update status to `done` or `fixing`
+- Add link to `review/round-{N}/report.md`
+- Update status: `fixing` / `complete` / `review-paused`
 
-### 11. Archive if complete
+### 10. Archive if complete
 
-If the user chose option 2 or 3 (plan is done):
+Archive only when the user's decision was `done` or `accept`.
 
-Create `plans/done/` if it doesn't exist, then move the plan folder there:
+Do NOT archive for: `fix`, `escalate`, or `stop`.
+
+Create `plans/done/` if it doesn't exist, then move the plan folder:
 ```
 plans/done/YYYYMMDD_HHMMSS-{name}/
 ```
 
-This keeps `plans/` showing only in-progress work.
+### 11. Hand off
 
-### 12. Hand off
+**If fixing or escalating**: "Start a new session and run `/dev-workflow` to implement the review fixes."
 
-**If fixing BLOCKs**: "Start a new session and run `/dev-workflow` to implement the review fixes."
+**If done or accepted**: "Plan complete. Moved to `plans/done/{folder}`. Review `tech-debt.md` for logged debt items."
 
-**If done**: "Plan complete. Moved to plans/done/{folder}. Review tech-debt.md for logged debt items."
+**If stopped**: "Review paused at round {N}. Plan remains at `plans/{folder}`. Run `/dev-workflow` to resume when ready."

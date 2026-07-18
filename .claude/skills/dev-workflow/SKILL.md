@@ -53,12 +53,16 @@ The user is active at exactly three points:
 
 Everything else runs autonomously.
 
+## Source of truth
+
+**PROGRESS.md is always the source of truth for phase and ticket state.** CONTEXT.md and INDEX.md are derived views — they exist to help a session orient quickly, not to own state. If any file disagrees with PROGRESS.md, PROGRESS.md wins and the other file must be corrected before proceeding.
+
 ## Session discipline
 
 - Each implement ticket = one fresh session
 - Code review = one fresh session
-- Every session starts by reading `CONTEXT.md` — nothing else from prior sessions
-- Every session ends by updating `CONTEXT.md` and `PROGRESS.md` before stopping
+- Every session starts by reading `CONTEXT.md` then cross-checking current ticket/phase against `PROGRESS.md`
+- Every session ends by writing to `PROGRESS.md` first, then updating `CONTEXT.md` to match
 
 ## Coding rules
 

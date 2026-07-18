@@ -13,6 +13,8 @@ Break the spec into tracer-bullet tickets — vertical slices, each independentl
 
 ### 1. Load context
 
+Read `PROGRESS.md` first. Confirm the current phase is `tickets`. If PROGRESS.md says a different phase, stop and tell the user — do not proceed.
+
 Read:
 - `plans/{folder}/CONTEXT.md`
 - `plans/{folder}/spec.md`
@@ -69,16 +71,17 @@ No file paths or code snippets unless a prototype produced a snippet that encode
 
 ### 6. Update plan files
 
-Update `CONTEXT.md`:
-- Add list of tickets with their numbers and slugs
-- Set current phase to `implement`
-- Set current ticket to `01`
-
-Update `PROGRESS.md`:
+Update `PROGRESS.md` first:
 - Mark `tickets` as complete with timestamp
 - Add one `implement/{NN}-{slug}` line per ticket (all unchecked)
 - Set current phase to `implement/01-{slug}`
+- Set `Current ticket path` to `plans/{folder}/tickets/01-{slug}.md`
 - Write last session end-state
+
+Then update `CONTEXT.md`:
+- Add list of tickets with their numbers and slugs
+- Set current phase to `implement`
+- Set current ticket to `plans/{folder}/tickets/01-{slug}.md` (full path)
 
 Update `INDEX.md`:
 - Add link to tickets/

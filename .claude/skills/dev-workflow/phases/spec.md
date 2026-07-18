@@ -13,6 +13,8 @@ Turn the grill output into a structured spec. No interview — synthesize what t
 
 ### 1. Load context
 
+Read `PROGRESS.md` first. Confirm the current phase is `spec`. If PROGRESS.md says a different phase, stop and tell the user — do not proceed.
+
 Read:
 - `plans/{folder}/CONTEXT.md`
 - `plans/{folder}/grill/requirements.md`
@@ -82,14 +84,14 @@ Open questions, risks, or things to revisit.
 
 ### 5. Update plan files
 
-Update `CONTEXT.md`:
-- Add link to spec.md
-- Set current phase to `tickets`
-
-Update `PROGRESS.md`:
+Update `PROGRESS.md` first:
 - Mark `spec` as complete with timestamp
 - Set current phase to `tickets`
 - Write last session end-state
+
+Then update `CONTEXT.md`:
+- Add link to spec.md
+- Set current phase to `tickets`
 
 Update `INDEX.md`:
 - Add link to spec.md

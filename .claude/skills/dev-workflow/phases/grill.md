@@ -13,7 +13,9 @@ Extract a complete, unambiguous picture of what we're building. This is the only
 
 ### 1. Load context
 
-Read the plan's `CONTEXT.md`. If this is the first session, it will be sparse — that's expected.
+Read `PROGRESS.md` first. Confirm the current phase is `grill`. If PROGRESS.md says a different phase, stop and tell the user — do not proceed.
+
+Read `CONTEXT.md`. If this is the first session, it will be sparse — that's expected.
 
 If the repo has a domain glossary or ADRs, read them now so you use consistent vocabulary.
 
@@ -60,16 +62,16 @@ Alternatives rejected: {if any}
 
 ### 5. Update plan files
 
-Update `CONTEXT.md`:
+Update `PROGRESS.md` first:
+- Mark `grill` as complete with timestamp
+- Set current phase to `spec`
+- Write last session end-state
+
+Then update `CONTEXT.md`:
 - Fill in "What we're building" (one sentence)
 - Add key decisions (one line each, link to ADR if one exists)
 - Set current phase to `spec`
 - Clear "Load this session" — that's for implement/review sessions
-
-Update `PROGRESS.md`:
-- Mark `grill` as complete with timestamp
-- Set current phase to `spec`
-- Write last session end-state
 
 Update `INDEX.md`:
 - Fill in "What we're building"
