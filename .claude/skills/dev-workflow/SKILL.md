@@ -23,7 +23,7 @@ plans/YYYYMMDD_HHMMSS-{name}/
   PROGRESS.md
 ```
 
-All paths are relative to the current working directory (the project being worked on). Use the templates in `plan-structure.md` for each file. Then begin the **grill phase** by reading `phases/grill.md` and following it.
+`plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `plans/` under a subdirectory; if `/dev-workflow` is invoked from inside a subdirectory, still resolve `plans/` against the repo root. Use the templates in `plan-structure.md` for each file. Then begin the **grill phase** by reading `phases/grill.md` and following it.
 
 ## Resuming a plan
 
@@ -42,6 +42,21 @@ tickets   → phases/tickets.md
 implement → phases/implement.md   (one session per ticket)
 review    → phases/review.md      (one session per round)
 ```
+
+## Auto mode
+
+`auto.sh` (in this skill's folder) drives dev-workflow unattended across fresh headless sessions, so you don't have to manually `/clear` and re-run between tickets. Run it from the project's repository root — `plans/` always lives there, even if the ticket work itself is under a subdirectory like `apps/web/`:
+
+```
+.claude/skills/dev-workflow/auto.sh <plan-name-or-path>
+```
+
+It requires grill to already be complete — grill is a live interview, and there's no one there to answer headless. It runs spec, each implement ticket, and review generation autonomously, one fresh session per phase/ticket, using `--permission-mode auto` (Claude Code's built-in risk classifier) plus a hard block on `git commit`/`git push`. It stops and prompts you in the terminal at the two checkpoints dev-workflow defines: ticket-list approval and the review-round decision.
+
+`auto.sh` invokes this skill as `/dev-workflow --auto <plan>` — not meant to be typed by hand. When invoked with `--auto`:
+- Strip `--auto` before treating the rest of the argument as the plan name/path.
+- If the current phase is `grill`, stop and say grill needs to run interactively — do not attempt to interview no one.
+- At the end of any phase, skip the "Start a new session and run `/dev-workflow`" hand-off sentence (a driver script owns session boundaries) — state what completed and the new current phase in one line instead. Every other step of the phase runs exactly as written, including both user checkpoints — `--auto` changes only that closing sentence, never a decision.
 
 ## User checkpoints
 
