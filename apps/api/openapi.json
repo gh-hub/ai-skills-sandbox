@@ -1,0 +1,130 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "AppController_getHealth",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "App"
+        ]
+      }
+    },
+    "/likes": {
+      "post": {
+        "operationId": "LikesController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateLikeDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Likes"
+        ]
+      }
+    },
+    "/likes/count": {
+      "get": {
+        "operationId": "LikesController_getCount",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikeCountDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Likes"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "thanks-claude API",
+    "description": "",
+    "version": "1.0.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "schemas": {
+      "CreateLikeDto": {
+        "type": "object",
+        "properties": {
+          "story": {
+            "type": "string"
+          },
+          "hoursSaved": {
+            "type": "number"
+          }
+        }
+      },
+      "LikeDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "story": {
+            "type": "string",
+            "nullable": true
+          },
+          "hoursSaved": {
+            "type": "number",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "story",
+          "hoursSaved"
+        ]
+      },
+      "LikeCountDto": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "count"
+        ]
+      }
+    }
+  }
+}

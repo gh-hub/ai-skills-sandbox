@@ -1,77 +1,81 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import type { CreateLikeRequest, LikeCount } from "@thanks-claude/shared-types";
+import { useState } from "react";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
+import { Button } from "@/components/ui/button";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useLikeCount, useSubmitLike } from "@/lib/api-client/likes";
+
+const storyFormSchema = z.object({
+  story: z.string().optional(),
+  hoursSaved: z
+    .string()
+    .optional()
+    .refine((value) => !value || value.trim() === "" || Number(value) >= 0, {
+      message: "Hours saved must be zero or greater",
+    }),
+});
+
+type StoryFormValues = z.infer<typeof storyFormSchema>;
 
 export default function Home() {
-  const [count, setCount] = useState<number | null>(null);
   const [isExpanded, setIsExpanded] = useState(false);
-  const [story, setStory] = useState("");
-  const [hoursSaved, setHoursSaved] = useState("");
-  const [error, setError] = useState<string | null>(null);
 
-  const fetchCount = async () => {
-    try {
-      const res = await fetch("/api/likes/count");
-      if (!res.ok) throw new Error("Failed to load like count");
-      const data: LikeCount = await res.json();
-      setCount(data.count);
-      setError(null);
-    } catch {
-      setError("Couldn't load the like count. Please refresh the page.");
-    }
-  };
+  const likeCount = useLikeCount();
+  const submitLike = useSubmitLike();
 
-  useEffect(() => {
-    fetchCount();
-  }, []);
+  const form = useForm<StoryFormValues>({
+    resolver: zodResolver(storyFormSchema),
+    defaultValues: { story: "", hoursSaved: "" },
+  });
 
-  const submitLike = async (body: CreateLikeRequest) => {
-    const res = await fetch("/api/likes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(body),
-    });
-    if (!res.ok) throw new Error("Failed to submit like");
-  };
+  const handleStorySubmit = (values: StoryFormValues) => {
+    const trimmedStory = values.story?.trim();
+    const trimmedHours = values.hoursSaved?.trim();
 
-  const handleLikeClick = async () => {
-    try {
-      await submitLike({});
-      await fetchCount();
-    } catch {
-      setError("Couldn't record your like. Please try again.");
-    }
-  };
-
-  const handleStorySubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    const trimmedStory = story.trim();
-    const trimmedHours = hoursSaved.trim();
-
-    try {
-      await submitLike({
-        story: trimmedStory === "" ? undefined : trimmedStory,
-        hoursSaved: trimmedHours === "" ? undefined : Number(trimmedHours),
-      });
-      setStory("");
-      setHoursSaved("");
-      setIsExpanded(false);
-      await fetchCount();
-    } catch {
-      setError("Couldn't submit your story. Please try again.");
-    }
+    submitLike.mutate(
+      {
+        story: trimmedStory ? trimmedStory : undefined,
+        hoursSaved: trimmedHours ? Number(trimmedHours) : undefined,
+      },
+      {
+        onSuccess: () => {
+          form.reset();
+          setIsExpanded(false);
+        },
+      }
+    );
   };
 
   return (
     <main>
       <h1>Thanks, Claude</h1>
 
-      {error && <p role="alert">{error}</p>}
+      {likeCount.isError && (
+        <p role="alert">Couldn't load the like count. Please refresh the page.</p>
+      )}
+      {submitLike.isError && (
+        <p role="alert">Couldn't submit your like. Please try again.</p>
+      )}
 
       <p>
-        <button onClick={handleLikeClick}>Like</button>{" "}
-        {count === null ? "loading…" : `${count} likes`}
+        <Button onClick={() => submitLike.mutate({})} disabled={submitLike.isPending}>
+          Like
+        </Button>{" "}
+        {likeCount.isLoading || likeCount.data === undefined
+          ? "loading…"
+          : `${likeCount.data} likes`}
       </p>
 
       <button onClick={() => setIsExpanded((prev) => !prev)}>
@@ -79,28 +83,39 @@ export default function Home() {
       </button>
 
       {isExpanded && (
-        <form onSubmit={handleStorySubmit}>
-          <div>
-            <label htmlFor="story">Story (optional)</label>
-            <br />
-            <textarea
-              id="story"
-              value={story}
-              onChange={(event) => setStory(event.target.value)}
+        <Form {...form}>
+          <form onSubmit={form.handleSubmit(handleStorySubmit)}>
+            <FormField
+              control={form.control}
+              name="story"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Story (optional)</FormLabel>
+                  <FormControl>
+                    <Textarea {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <div>
-            <label htmlFor="hoursSaved">Hours saved (optional)</label>
-            <br />
-            <input
-              id="hoursSaved"
-              type="number"
-              value={hoursSaved}
-              onChange={(event) => setHoursSaved(event.target.value)}
+            <FormField
+              control={form.control}
+              name="hoursSaved"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel>Hours saved (optional)</FormLabel>
+                  <FormControl>
+                    <Input type="number" {...field} />
+                  </FormControl>
+                  <FormMessage />
+                </FormItem>
+              )}
             />
-          </div>
-          <button type="submit">Submit</button>
-        </form>
+            <Button type="submit" disabled={submitLike.isPending}>
+              Submit
+            </Button>
+          </form>
+        </Form>
       )}
     </main>
   );
