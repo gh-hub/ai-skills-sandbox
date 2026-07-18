@@ -11,7 +11,10 @@ export function useLikeCount() {
     queryKey: likeCountQueryKey,
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/likes/count");
-      if (error) throw new Error("Failed to load like count");
+      if (error) {
+        console.error(error);
+        throw new Error("Failed to load like count");
+      }
       return data.count;
     },
   });
@@ -23,7 +26,10 @@ export function useSubmitLike() {
   return useMutation({
     mutationFn: async (body: CreateLikeBody) => {
       const { error } = await apiClient.POST("/likes", { body });
-      if (error) throw new Error("Failed to submit like");
+      if (error) {
+        console.error(error);
+        throw new Error("Failed to submit like");
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: likeCountQueryKey });

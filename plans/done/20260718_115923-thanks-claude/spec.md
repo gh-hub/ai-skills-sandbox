@@ -34,6 +34,7 @@ A single-page site with a "like" button and a running total of likes. Clicking t
 - **API contract:**
   - `POST /likes` — body `{ story?: string; hoursSaved?: number }`, both fields optional, validated via a `CreateLikeDto` (`class-validator`/`class-transformer`). Returns the created like record.
   - `GET /likes/count` — returns `{ count: number }`, the total row count of `likes`.
+  - `GET /health` — liveness check that also verifies DB connectivity, returning `{ status: "ok" }`.
   - Global `ValidationPipe` (whitelist + transform) applied at bootstrap so unexpected fields are stripped and types are coerced.
   - `@nestjs/swagger` mounted at `/api/docs`, generated from the same DTOs used for validation.
 - **Frontend:** Next.js with `output: 'export'` (fully static, no Node server at runtime). Calls `POST /api/likes` and `GET /api/likes/count` relative to its own origin — no hardcoded backend host.

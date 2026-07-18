@@ -15,6 +15,7 @@ RUN pnpm --filter @thanks-claude/shared-types build
 RUN pnpm --filter @thanks-claude/api build
 
 WORKDIR /repo/apps/api
+RUN CI=true pnpm prune --prod
 RUN chmod +x entrypoint.sh
 
 EXPOSE 3000

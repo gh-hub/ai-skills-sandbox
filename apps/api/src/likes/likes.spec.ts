@@ -40,10 +40,15 @@ describe("Likes", () => {
     await container?.stop();
   });
 
-  it("creates a like with no body fields", async () => {
+  it("creates a like with null story and hoursSaved when no body fields are given", async () => {
     const response = await request(app.getHttpServer()).post("/likes").send({}).expect(201);
 
     expect(response.body).toMatchObject({ story: null, hoursSaved: null });
+  });
+
+  it("assigns a string id to a newly created like", async () => {
+    const response = await request(app.getHttpServer()).post("/likes").send({}).expect(201);
+
     expect(response.body.id).toEqual(expect.any(String));
   });
 
