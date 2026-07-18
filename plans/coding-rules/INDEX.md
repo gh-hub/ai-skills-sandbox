@@ -7,6 +7,7 @@ Load this file at the start of every implement and review session. Then load onl
 | File | Load when |
 |---|---|
 | [general.md](general.md) | Always |
+| [node-typescript-docker.md](node-typescript-docker.md) | Node/TypeScript apps (NestJS, Next.js) built inside Docker |
 
 ## Repo-specific overrides
 

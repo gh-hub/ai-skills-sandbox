@@ -9,7 +9,7 @@ Always start here. Every feature, every session.
 
 ## First invocation (no plan exists yet)
 
-If invoked without a plan argument, ask the user: "What are we building? Give it a short name (e.g. auth-refactor)."
+If invoked without a plan argument, derive a short, slug-friendly name from what the user described (e.g. `auth-refactor`) and proceed — do not ask the user to name it. Mention the chosen name in passing so they can redirect if they'd prefer a different one.
 
 If `plans/coding-rules/` does not exist in the current project, create it with:
 - `plans/coding-rules/INDEX.md` — see the template in `plan-structure.md`

@@ -1,0 +1,17 @@
+# Tech Debt
+
+## Round 1 — 2026-07-18
+- [DEBT] `apps/api/src/likes/likes.controller.ts` imports the `db` singleton directly from `../db/client` instead of via DI — Shotgun Surgery risk once a second module needs the DB. (Standards)
+- [DEBT] `apps/api/drizzle.config.ts` uses `process.env.DATABASE_URL!` (non-null assertion) instead of a boundary check for a missing env var. (Standards)
+- [DEBT] `apps/api/src/likes/likes.spec.ts` "creates a like with no body fields" test combines a `toMatchObject` assertion with a separate `id` assertion rather than one assertion per test. (Standards)
+- [DEBT] `plans/20260718_115923-thanks-claude/tickets/02-like-count-api.md` and `03-like-button-ui.md` still show unchecked acceptance boxes and `Status: ready` despite the work being complete and PROGRESS.md marking them done — ticket docs weren't updated to reflect completion. (Spec)
+- [DEBT] `GET /health` (`apps/api/src/app.controller.ts`) isn't in the spec's API contract section — pre-authorized by ticket 01's own acceptance criteria, but still surface beyond the top-level spec. (Spec)
+- [DEBT] `apps/api/Dockerfile` and `apps/web/Dockerfile` run `pnpm install --frozen-lockfile` with no prod/prune step, so devDependencies (drizzle-kit, jest, ts-jest, testcontainers) ship in the runtime image. Harmless for local Compose use but unaddressed. (Spec)
+
+## Round 2 — 2026-07-18
+- [DEBT] `apps/api/src/app.controller.ts` also imports the `db` singleton directly (same DI-bypass smell logged for `likes.controller.ts` in round 1) — a second location that would need touching if this is ever remediated. (Standards)
+- [DEBT] Sharpens the round-1 devDependencies item: `apps/api/entrypoint.sh` runs `pnpm exec drizzle-kit migrate` at container *runtime*, so `drizzle-kit` (a devDependency) is load-bearing in production, not just extra image weight. A naive `--prod`/prune fix to the round-1 item would break migrations — remediation needs to either move `drizzle-kit` to `dependencies` or run migrations as a separate build/init step. (Standards)
+- [DEBT] `apps/web/app/page.tsx`: on a `fetchCount()` failure, `count` stays `null` forever, so the UI shows the new error banner *and* the like-count text stuck on "loading…" simultaneously, with no retry path. Cosmetic/UX rough edge, not a functional bug. (Spec)
+
+## Round 3 — 2026-07-18
+- [FIXED, 2026-07-18] `apps/web/app/page.tsx`'s `submitLike` violates "a function does one thing" / "no side effects callers can't see from the signature": its `Promise<void>` return implies "submit a like," but it also calls `fetchCount()` internally, mutating `count` and `error` state invisibly to callers. This hidden coupling is the root cause behind both the round-1 and round-2 bugs — callers kept misjudging `submitLike`'s effect on `error`. Remediation: made the refetch an explicit second call (`await fetchCount()`) at each call site (`handleLikeClick`, `handleStorySubmit`) instead of folding it into `submitLike`, which now only does the POST. Verified: `tsc --noEmit` clean, full `docker compose up --build` with in-browser checks of all three flows (happy path, POST-succeeds/refetch-fails via `window.fetch` monkey-patch on both the like and story-submit paths, restored-fetch recovery) — behavior unchanged from round-2's fix, side effect now explicit at call sites. API test suite (4/4) unaffected (frontend-only change). (Standards)
