@@ -89,4 +89,8 @@ Update `INDEX.md`:
 
 ### 7. Hand off
 
-Tell the user: "Tickets written. Start a new session and run `/dev-workflow` to begin implementing ticket 01."
+Tell the user tickets are written and give them both ways to continue:
+- Manually, one ticket per session: "Start a new session and run `/dev-workflow` to begin implementing ticket 01."
+- Autonomously, across all remaining tickets and the review round: run `auto.sh` from the repo root, with the actual plan path filled in, e.g. `.claude/skills/dev-workflow/auto.sh plans/{folder}`. Note that it still stops at the review-round decision checkpoint, and that it never runs `git commit`/`git push` on its own.
+
+(This step doesn't apply under `--auto` — see "Auto mode" in `SKILL.md`, which replaces this whole hand-off with a one-line status instead.)

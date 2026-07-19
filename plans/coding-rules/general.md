@@ -33,6 +33,11 @@ Applies to all projects and tech stacks. Loaded in every implement and review se
 - Test names describe the scenario, not the function name.
 - Do not mock internals — mock at system boundaries only.
 
+## UI verification
+
+- Verify UI/frontend changes with Playwright (script or MCP), not the claude-in-chrome browser tool.
+- If Playwright isn't set up yet in a web app ticket, set it up as part of that ticket rather than falling back to claude-in-chrome.
+
 ## No over-engineering
 
 - Do not add abstractions beyond what the current ticket requires.
