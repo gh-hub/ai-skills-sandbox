@@ -11,10 +11,6 @@ Always start here. Every feature, every session.
 
 If invoked without a plan argument, derive a short, slug-friendly name from what the user described (e.g. `auth-refactor`) and proceed — do not ask the user to name it. Mention the chosen name in passing so they can redirect if they'd prefer a different one.
 
-If `plans/coding-rules/` does not exist in the current project, create it with:
-- `plans/coding-rules/INDEX.md` — see the template in `plan-structure.md`
-- `plans/coding-rules/general.md` — see the template in `plan-structure.md`
-
 Create the plan folder:
 ```
 plans/YYYYMMDD_HHMMSS-{name}/
@@ -81,7 +77,7 @@ Everything else runs autonomously.
 
 ## Coding rules
 
-Before implement or review: read `plans/coding-rules/INDEX.md` and load only the rule files relevant to the current ticket's tech stack. Do not load rules that don't apply.
+Before implement or review: read `coding-rules/INDEX.md` (in this skill's folder — the shipped defaults), and also `plans/coding-rules/INDEX.md` if it exists in the current project (project-specific additions/overrides). From both, load only the rule files relevant to the current ticket's tech stack — a `file` row is read directly, a `skill` row is invoked with the `Skill` tool. Do not load rules that don't apply.
 
 ## Reference
 

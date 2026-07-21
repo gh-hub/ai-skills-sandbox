@@ -6,7 +6,7 @@ Canonical definition of every file and folder inside a plan.
 
 ```
 plans/
-  coding-rules/          ← shared across all plans, never moved
+  coding-rules/          ← optional, project-specific rules only; not auto-created
   tech-debt/              ← global backlog, one file per open DEBT item, written by the review phase's archive step
     YYYYMMDD_HHMMSS-{slug}.md
   done/                  ← completed plans, moved here by the review phase
@@ -14,7 +14,7 @@ plans/
   YYYYMMDD_HHMMSS-{name}/  ← in-progress plans (only these show here)
 ```
 
-Plans in `plans/` root are in-progress. When review marks a plan complete it moves to `plans/done/`. `coding-rules/` and `tech-debt/` stay at the root always.
+Plans in `plans/` root are in-progress. When review marks a plan complete it moves to `plans/done/`. `coding-rules/` (if it exists) and `tech-debt/` stay at the root always.
 
 ## Plan folder name
 
@@ -85,7 +85,7 @@ Current ticket: {path or "none"}
 
 ## Load this session
 - plans/{folder}/tickets/{current}.md
-- plans/coding-rules/{relevant}.md
+- coding-rules/{relevant}.md (skill defaults) + plans/coding-rules/{relevant}.md (project, if present)
 
 ## Gotchas
 - Fact that would cause a mistake if unknown
@@ -220,75 +220,25 @@ dev-workflow only ever writes here — it does not read this folder, evaluate an
 
 ## plans/coding-rules/
 
-Lives at the project root level (not inside a plan folder). Shared across all plans in the project.
+The dev-workflow skill ships its own default rules in `coding-rules/` inside the skill's folder (`general.md`, stack-specific files, and rows pointing at standalone skills like `nestjs-service-style`) — those apply to every project the skill is installed in and are never generated per-project.
 
-### INDEX.md template
+`plans/coding-rules/` at the project root is the optional layer on top of that: project-specific rules only, things that are true of this one repo and don't belong in the shared skill defaults. It is **not** created automatically. Create it only when a rule actually needs recording — same lazy pattern as `plans/tech-debt/`. A project with no rule of its own simply has no `plans/coding-rules/` folder, and that's the expected state, not a missing setup step.
 
-Only list files that actually exist. Do not add rows for files that haven't been created yet — a missing file is worse than a missing row.
+When a project-specific rule does come up, create `plans/coding-rules/INDEX.md`:
 
 ```markdown
-# Coding Rules Index
+# Coding Rules Index (project overrides)
 
-Load this file at the start of every implement and review session. Then load only the rule files that apply to the current ticket's tech stack.
+Read alongside the dev-workflow skill's own coding-rules/INDEX.md. Rules here add to or override the skill defaults where they conflict — only add a rule here if it's specific to this project.
 
 ## Rule files
 
 | File | Load when |
 |---|---|
-| [general.md](general.md) | Always |
 
-<!-- Add a row here each time you create a new rules file, e.g.:
-| [python.md](python.md) | Ticket touches Python code |
-| [nextjs.md](nextjs.md) | Ticket touches Next.js / React |
+<!-- Add a row here each time you create a rule file, e.g.:
+| [payments-service.md](payments-service.md) | Ticket touches the payments service |
 -->
-
-## Repo-specific overrides
-
-| File | Load when |
-|---|---|
-
-<!-- Add a row here when you create a repo-specific file under repos/, e.g.:
-| [repos/my-app.md](repos/my-app.md) | Working in the my-app repo |
--->
-
-Repo-specific rules override general rules where they conflict.
 ```
 
-### general.md template
-
-```markdown
-# General Coding Rules
-
-Applies to all projects and tech stacks.
-
-## Naming
-- Names must say what the thing IS or DOES, not how it's implemented
-- Avoid generic names: handler, manager, utils, helpers, data, info
-- Boolean names start with is, has, or can
-
-## Functions
-- A function does one thing. If you need "and" to describe it, split it
-- No side effects that callers can't see from the signature
-- Max 3 parameters — beyond that, group into a typed object
-
-## Comments
-- No comments that describe WHAT the code does
-- Comments only for WHY: a non-obvious constraint, a workaround, a hidden invariant
-- No commented-out code — delete it, git has history
-
-## Error handling
-- Only handle errors at system boundaries (user input, external APIs, filesystem, network)
-- Do not add fallbacks for scenarios that cannot happen
-- Do not swallow errors silently
-
-## Tests
-- Test external behavior, not implementation details
-- One assertion per test where possible
-- Test names describe the scenario, not the function name
-- Do not mock internals — mock at system boundaries only
-
-## No over-engineering
-- No abstractions beyond what the current ticket requires
-- Three similar lines is better than a premature abstraction
-- No feature flags or backwards-compat shims unless the spec asks for it
-```
+Only list files that actually exist. Do not add rows for files that haven't been created yet — a missing file is worse than a missing row.

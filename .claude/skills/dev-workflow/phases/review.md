@@ -20,7 +20,7 @@ Determine the round number: count existing `plans/{folder}/review/round-N/` fold
 Then read:
 - `plans/{folder}/CONTEXT.md`
 - `plans/{folder}/spec.md` — the spec to check against
-- `plans/coding-rules/INDEX.md` — load relevant rule files
+- `coding-rules/INDEX.md` (in the dev-workflow skill's own folder — shipped defaults) and `plans/coding-rules/INDEX.md` if it exists in this project (project-specific overrides) — load relevant rule files from both. A `file` row is read directly. A `skill` row (e.g. `nestjs-service-style`) — read its relevant reference file(s) directly (e.g. `references/review-checklist.md`) rather than invoking the skill, since its content needs to be pasted into the sub-agent prompt in step 4.
 
 Create `plans/{folder}/review/round-{N}/`.
 
@@ -40,7 +40,7 @@ Confirm the diff is non-empty before spawning sub-agents.
 **Spec source**: `plans/{folder}/spec.md`
 
 **Standards sources**: 
-- `plans/coding-rules/INDEX.md` + relevant rule files
+- `coding-rules/INDEX.md` (skill defaults) + `plans/coding-rules/INDEX.md` (project overrides, if present) + relevant rule files from both, per step 1
 - Any `CODING_STANDARDS.md` or `CONTRIBUTING.md` in the repo
 
 **Smell baseline** (applies even when no repo standards exist):

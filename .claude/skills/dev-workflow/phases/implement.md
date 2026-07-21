@@ -17,7 +17,7 @@ Read in this order:
 1. `plans/{folder}/PROGRESS.md` — source of truth. Confirm the current phase is an `implement/*` phase. If it is not, stop and tell the user — do not proceed. Take the ticket file path from the `Current ticket path` field.
 2. `plans/{folder}/CONTEXT.md` — orientation. If "Current ticket" in CONTEXT.md disagrees with `Current ticket path` in PROGRESS.md, PROGRESS.md wins — correct CONTEXT.md before continuing.
 3. The ticket file at the path from PROGRESS.md's `Current ticket path` field. Do not construct this path yourself — it may be under `tickets/` for original work or `review/round-N/tickets/` for review fixes.
-4. `plans/coding-rules/INDEX.md` — then load only the rule files that apply to this ticket's tech stack.
+4. `coding-rules/INDEX.md` (in the dev-workflow skill's own folder — shipped defaults) and `plans/coding-rules/INDEX.md` if it exists in this project (project-specific overrides). From both, load only the rule files that apply to this ticket's tech stack — a `file` row is read directly, a `skill` row (e.g. `nestjs-service-style`) is invoked with the `Skill` tool, not just read.
 
 Do not read the full spec or grill output unless CONTEXT.md links to something specific you need.
 
