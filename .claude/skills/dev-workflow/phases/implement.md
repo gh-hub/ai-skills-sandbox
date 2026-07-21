@@ -62,4 +62,8 @@ Then update `CONTEXT.md`:
 
 If more tickets remain: "Ticket {N} done. Start a new session and run `/dev-workflow` to implement ticket {N+1}."
 
+Also give them the copy-paste command to hand the rest off to the auto driver instead (remaining tickets and review — it still stops at the review-round checkpoint), run from the repo root with the actual plan path filled in:
+- Mac/Linux: `.claude/skills/dev-workflow/auto.sh plans/{folder}`
+- Windows: `python .claude/skills/dev-workflow/auto.py plans/{folder}`
+
 If all tickets are done: "All tickets implemented. Start a new session and run `/dev-workflow` to begin code review."

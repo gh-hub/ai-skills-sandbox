@@ -80,3 +80,7 @@ Update `INDEX.md`:
 ### 6. Hand off
 
 Tell the user: "Grill complete. Start a new session and run `/dev-workflow` to continue with the spec phase."
+
+Also give them the copy-paste command to hand everything from here on to the auto driver instead (spec, tickets, each implement ticket, review — it still stops at the ticket-list and review-round checkpoints), run from the repo root with the actual plan path filled in:
+- Mac/Linux: `.claude/skills/dev-workflow/auto.sh plans/{folder}`
+- Windows: `python .claude/skills/dev-workflow/auto.py plans/{folder}`

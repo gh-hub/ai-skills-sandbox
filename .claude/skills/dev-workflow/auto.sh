@@ -1,10 +1,12 @@
 #!/usr/bin/env bash
-# Auto mode driver for the dev-workflow skill.
+# Auto mode driver for the dev-workflow skill (Mac/Linux — see auto.py for Windows).
 #
 # Loops headless `claude -p` calls across fresh sessions so you don't have to
 # manually /clear + rerun /dev-workflow between phases and tickets. Stops and
 # prompts you in this terminal at the two checkpoints dev-workflow defines:
 # ticket-list approval and the review-round decision.
+#
+# Behavior must stay identical to auto.py — if you change one, change the other.
 #
 # Usage: auto.sh <plan-name-or-path>
 

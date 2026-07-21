@@ -203,6 +203,10 @@ plans/done/YYYYMMDD_HHMMSS-{name}/
 
 **If fixing or escalating**: "Start a new session and run `/dev-workflow` to implement the review fixes."
 
+Also give them the copy-paste command to hand the rest off to the auto driver instead, run from the repo root with the actual plan path filled in:
+- Mac/Linux: `.claude/skills/dev-workflow/auto.sh plans/{folder}`
+- Windows: `python .claude/skills/dev-workflow/auto.py plans/{folder}`
+
 **If done or accepted**: "Plan complete. Moved to `plans/done/{folder}`. {N} open DEBT item(s) exported to `plans/tech-debt/`."
 
 **If stopped**: "Review paused at round {N}. Plan remains at `plans/{folder}`. Run `/dev-workflow` to resume when ready."
