@@ -3,25 +3,45 @@ import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
+const isCI = Boolean(process.env.CI);
+const REQUIRED_SERVICES = ["web", "api", "postgres"];
 
 function isStackAlreadyRunning(): boolean {
-  const output = execFileSync("docker", ["compose", "ps", "--status", "running", "--format", "json"], {
-    cwd: REPO_ROOT,
-    stdio: ["ignore", "pipe", "ignore"],
-  }).toString();
-  return output.trim().length > 0;
+  // Docker not being reachable here (daemon down, CLI missing) is not an error condition for this
+  // check — it just means the stack isn't up, so global setup should proceed to start it normally.
+  let output: string;
+  try {
+    output = execFileSync(
+      "docker",
+      ["compose", "ps", "--status", "running", "--format", "json"],
+      { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "ignore"] }
+    ).toString();
+  } catch {
+    return false;
+  }
+
+  const runningServices = new Set(
+    output
+      .trim()
+      .split("\n")
+      .filter((line) => line.length > 0)
+      .map((line) => (JSON.parse(line) as { Service: string }).Service)
+  );
+  return REQUIRED_SERVICES.every((service) => runningServices.has(service));
 }
 
-// reuseExistingServer only reuses locally, so a stack found running here is the one it will reuse —
-// global-teardown.ts reads this to decide whether it's safe to tear down.
-process.env.E2E_STACK_WAS_ALREADY_RUNNING = String(!process.env.CI && isStackAlreadyRunning());
+// Playwright runs the webServer plugin's setup (which invokes `docker compose up --build`) before
+// the globalSetup task, so by the time global-setup.ts would run, this run's own webServer has
+// already started the stack it would be checking for. Config module evaluation happens before any
+// task runs, so this is the only point where the probe reflects state from *before* this invocation.
+// global-setup.ts imports this value directly instead of recomputing it too late (and instead of the
+// process.env round-trip the previous global-teardown.ts design used).
+export const wasAlreadyRunning = !isCI && isStackAlreadyRunning();
 
 export default defineConfig({
   testDir: "./tests",
-  fullyParallel: true,
   workers: 1,
   globalSetup: require.resolve("./global-setup"),
-  globalTeardown: require.resolve("./global-teardown"),
   use: {
     baseURL: "http://localhost:8080",
   },
@@ -29,7 +49,7 @@ export default defineConfig({
     command: "docker compose up --build",
     cwd: REPO_ROOT,
     url: "http://localhost:8080",
-    reuseExistingServer: !process.env.CI,
+    reuseExistingServer: !isCI,
     timeout: 300_000,
   },
   projects: [{ name: "chromium", use: { ...devices["Desktop Chrome"] } }],

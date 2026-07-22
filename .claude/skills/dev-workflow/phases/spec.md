@@ -99,8 +99,4 @@ Update `INDEX.md`:
 
 ### 6. Hand off
 
-Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase."
-
-Also give them the copy-paste command to hand the rest off to the auto driver instead (tickets, each implement ticket, review — it still stops at the ticket-list and review-round checkpoints), run from the repo root with the actual plan path filled in:
-- Mac/Linux: `.claude/skills/dev-workflow/auto.sh plans/{folder}`
-- Windows: `python .claude/skills/dev-workflow/auto.py plans/{folder}`
+Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list and review-round checkpoints.

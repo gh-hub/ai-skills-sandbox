@@ -29,6 +29,25 @@ const storyFormSchema = z.object({
 
 type StoryFormValues = z.infer<typeof storyFormSchema>;
 
+function renderLikeCount(likeCount: ReturnType<typeof useLikeCount>) {
+  if (likeCount.isError) {
+    return (
+      <span role="alert">
+        Unable to load like count.{" "}
+        <Button onClick={() => likeCount.refetch()} variant="link" size="sm">
+          Retry
+        </Button>
+      </span>
+    );
+  }
+
+  if (likeCount.isLoading || likeCount.data === undefined) {
+    return "loading…";
+  }
+
+  return `${likeCount.data} likes`;
+}
+
 export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
 
@@ -71,16 +90,7 @@ export default function Home() {
         <Button onClick={() => likeSubmit.mutate({})} disabled={likeSubmit.isPending}>
           Like
         </Button>{" "}
-        {likeCount.isError ? (
-          <span role="alert">
-            Unable to load like count.{" "}
-            <button onClick={() => likeCount.refetch()}>Retry</button>
-          </span>
-        ) : likeCount.isLoading || likeCount.data === undefined ? (
-          "loading…"
-        ) : (
-          `${likeCount.data} likes`
-        )}
+        {renderLikeCount(likeCount)}
       </p>
 
       <Button onClick={() => setIsExpanded((prev) => !prev)}>

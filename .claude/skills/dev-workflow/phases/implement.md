@@ -60,10 +60,6 @@ Then update `CONTEXT.md`:
 
 ### 7. Hand off
 
-If more tickets remain: "Ticket {N} done. Start a new session and run `/dev-workflow` to implement ticket {N+1}."
-
-Also give them the copy-paste command to hand the rest off to the auto driver instead (remaining tickets and review — it still stops at the review-round checkpoint), run from the repo root with the actual plan path filled in:
-- Mac/Linux: `.claude/skills/dev-workflow/auto.sh plans/{folder}`
-- Windows: `python .claude/skills/dev-workflow/auto.py plans/{folder}`
+If more tickets remain: "Ticket {N} done. Start a new session and run `/dev-workflow` to implement ticket {N+1}." Mention they can also ask to run the rest autonomously (remaining tickets and review) — see "Auto mode" in `SKILL.md`; it still stops at the review-round checkpoint.
 
 If all tickets are done: "All tickets implemented. Start a new session and run `/dev-workflow` to begin code review."

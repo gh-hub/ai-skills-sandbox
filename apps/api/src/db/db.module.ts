@@ -3,6 +3,8 @@ import { db } from "./client";
 
 export const DATABASE_CONNECTION = "DATABASE_CONNECTION";
 
+export type DbClient = typeof db;
+
 @Global()
 @Module({
   providers: [{ provide: DATABASE_CONNECTION, useValue: db }],
