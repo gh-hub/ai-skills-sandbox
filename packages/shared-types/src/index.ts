@@ -18,8 +18,12 @@ export type LikeCount = {
   count: number;
 };
 
+export type LikeFeedItem = Like & {
+  attributedUserName: string | null;
+};
+
 export type LikesPage = {
-  items: Like[];
+  items: LikeFeedItem[];
   total: number;
   page: number;
   limit: number;
@@ -33,4 +37,25 @@ export type LikesStats = {
   percentWithoutHoursReported: number;
   averageHoursPerReport: number;
   estimatedTotalHoursSaved: number;
+};
+
+export type SignupRequest = {
+  name: string;
+  email: string;
+  password: string;
+};
+
+export type LoginRequest = {
+  email: string;
+  password: string;
+};
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+};
+
+export type MeResponse = {
+  user: AuthUser | null;
 };

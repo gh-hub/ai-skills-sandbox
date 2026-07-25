@@ -1,5 +1,7 @@
 import { Controller, Get, Post, Body, Query } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
+import type { AuthUser } from "@thanks-claude/shared-types";
+import { CurrentUser } from "../auth/current-user.decorator";
 import { LikesService } from "./likes.service";
 import { CreateLikeDto } from "./dto/create-like.dto";
 import { GetLikesQueryDto } from "./dto/get-likes-query.dto";
@@ -13,8 +15,8 @@ export class LikesController {
 
   @Post()
   @ApiCreatedResponse({ type: LikeDto })
-  async create(@Body() dto: CreateLikeDto): Promise<LikeDto> {
-    return this.likesService.create(dto);
+  async create(@Body() dto: CreateLikeDto, @CurrentUser() user: AuthUser | null): Promise<LikeDto> {
+    return this.likesService.create(dto, user);
   }
 
   @Get("count")

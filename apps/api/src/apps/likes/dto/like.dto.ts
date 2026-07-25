@@ -1,5 +1,5 @@
 import { ApiProperty } from "@nestjs/swagger";
-import type { Like, LikeCount } from "@thanks-claude/shared-types";
+import type { Like, LikeCount, LikeFeedItem } from "@thanks-claude/shared-types";
 
 export class LikeDto implements Like {
   @ApiProperty()
@@ -18,4 +18,9 @@ export class LikeDto implements Like {
 export class LikeCountDto implements LikeCount {
   @ApiProperty()
   count!: number;
+}
+
+export class LikeFeedItemDto extends LikeDto implements LikeFeedItem {
+  @ApiProperty({ nullable: true, type: String })
+  attributedUserName!: string | null;
 }

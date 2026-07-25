@@ -1,6 +1,6 @@
 ---
 name: dev-workflow/review-tickets
-description: Phase 5a of dev-workflow. Two-axis code review (Standards + Spec) with severity tagging. Writes the report, logs DEBT, and writes tickets for BLOCK findings. No user input needed — delegatable to a sub-agent under auto mode.
+description: Phase 5a of dev-workflow. Two-axis code review (Standards + Spec) with severity tagging. Writes the report, logs DEBT, and writes tickets for BLOCK findings. No user input needed — delegatable whole under auto mode, and its write-up delegates to a sub-agent even when run live.
 ---
 
 # Review-Tickets Phase
@@ -71,62 +71,44 @@ Use `subagent_type: general-purpose` for both. Each sub-agent has Bash tool acce
 - The full spec contents pasted in (sub-agent has no filesystem access to the plan folder)
 - Brief: "Run the diff command with Bash, then report: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Tag each finding BLOCK or DEBT. Quote the spec line for each finding. Under 400 words."
 
-### 5. Write the report
+### 5. Delegate the write-up
 
-Save to `plans/{folder}/review/round-{N}/report.md`:
+Both review sub-agents have reported back their findings, and nothing from here on needs the user. Per the Delegation discipline in `SKILL.md`: if you're running this phase live (in conversation with the user), hand the rest of this phase to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`), passing it both sub-agents' verbatim output. If you were yourself already spawned as a sub-agent to run this whole phase (e.g. under auto mode), just do the following steps directly instead of spawning yet another sub-agent.
 
-```markdown
-# Review Round {N}
+Whoever does the work (you or the sub-agent) should:
 
-## Standards
-{verbatim sub-agent output}
+1. Write the report to `plans/{folder}/review/round-{N}/report.md`:
+   ```markdown
+   # Review Round {N}
 
-## Spec
-{verbatim sub-agent output}
+   ## Standards
+   {verbatim sub-agent output}
 
-## Summary
-BLOCK findings: {count}
-DEBT findings: {count}
-Worst BLOCK: {one line}
-```
+   ## Spec
+   {verbatim sub-agent output}
 
-### 6. Handle DEBT findings
+   ## Summary
+   BLOCK findings: {count}
+   DEBT findings: {count}
+   Worst BLOCK: {one line}
+   ```
+2. Append all DEBT findings to `plans/{folder}/review/tech-debt.md` (create it if it doesn't exist):
+   ```markdown
+   ## Round {N} — {date}
+   - [DEBT] {finding} (Standards/Spec)
+   ```
+   DEBT findings are never turned into tickets and never implemented as part of this plan — they are logged only, for the separate `/debt-workflow` skill to triage later.
+3. If any BLOCKs exist, write tickets to `plans/{folder}/review/round-{N}/tickets/` — one file per finding, numbered from `01`, using the same ticket format as `phases/tickets.md`.
+4. Write to `PROGRESS.md` first, then update `CONTEXT.md` to match (PROGRESS.md is the source of truth — if interrupted between the two writes, PROGRESS.md wins):
+   - `PROGRESS.md`: mark `review/round-{N}/tickets` complete with timestamp, set current phase to `review/round-{N}/decide`, write last session end-state (BLOCK count, DEBT count, link to `report.md`).
+   - `CONTEXT.md`: note round `{N}` findings summary (counts only — link to `report.md` for detail), set current phase to `review/round-{N}/decide`.
+   - `INDEX.md`: add link to `review/round-{N}/report.md`, update status to `review-pending-decision`.
 
-Append all DEBT findings to `plans/{folder}/review/tech-debt.md`. Create the file if it doesn't exist.
+If delegating, give the sub-agent the plan folder path, both review sub-agents' verbatim output, and these instructions, plus: never run `git commit`/`git push`, never talk to the user (no findings should be summarized in chat — that's `review-decide.md`'s job next), and report back one line: BLOCK count, DEBT count, and that the phase is now `review/round-{N}/decide`. Wait for it to finish before proceeding.
 
-Format:
-```markdown
-## Round {N} — {date}
-- [DEBT] {finding} (Standards/Spec)
-```
+### 6. Hand off
 
-DEBT findings are never turned into tickets and never implemented as part of this plan — they are logged only, for the separate `/debt-workflow` skill to triage later.
+This phase never talks to the user directly — no findings should be summarized in chat here.
 
-### 7. Handle BLOCK findings
-
-If any BLOCKs exist, write tickets to `plans/{folder}/review/round-{N}/tickets/` — one file per finding, numbered from `01`.
-
-Use the same ticket format as `phases/tickets.md`.
-
-### 8. Update plan files
-
-Write to `PROGRESS.md` first, then update `CONTEXT.md` to match. PROGRESS.md is the source of truth — if interrupted between the two writes, PROGRESS.md wins.
-
-Update `PROGRESS.md`:
-- Mark `review/round-{N}/tickets` complete with timestamp
-- Set current phase to `review/round-{N}/decide`
-- Write last session end-state: BLOCK count, DEBT count, link to `report.md`
-
-Update `CONTEXT.md`:
-- Note round `{N}` findings summary (counts only — link to `report.md` for detail)
-- Set current phase to `review/round-{N}/decide`
-
-Update `INDEX.md`:
-- Add link to `review/round-{N}/report.md`
-- Update status: `review-pending-decision`
-
-### 9. Hand off
-
-This phase never talks to the user directly — no findings should be summarized in chat here. Continue immediately to `phases/review-decide.md` in this same session; it needs live user input right away, so there is no reason to start a fresh session between the two.
-
-Under auto mode: report back one line — BLOCK count, DEBT count, and that the phase is now `review/round-{N}/decide` — per the delegation contract in `SKILL.md`. Do not present the checkpoint yourself; that is `review-decide.md`'s job, and it must run live, not inside this sub-agent.
+- **If you are the live session** (you ran steps 1-4 yourself and delegated step 5's write-up): once the write-up sub-agent returns, continue immediately to `phases/review-decide.md` yourself, in this same conversation — it needs live user input right away, so there is no reason to start a fresh session between the two.
+- **If you are a sub-agent spawned to run this whole phase** (e.g. under auto mode, per `SKILL.md`): do not continue to `review-decide.md` — you have no user to check in with. Report back one line — BLOCK count, DEBT count, and that the phase is now `review/round-{N}/decide` — and stop. The conductor runs `review-decide.md` live, per the delegation contract in `SKILL.md`. Do not present the checkpoint yourself; that is `review-decide.md`'s job.

@@ -5,8 +5,22 @@ import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
-import request from "supertest";
+import cookieParser from "cookie-parser";
+import request, { type Response } from "supertest";
 import type { DbClient } from "../../db/db.module";
+
+function extractSessionCookie(response: Response): string {
+  const setCookieHeader: string[] = response.get("Set-Cookie") ?? [];
+  const sessionCookie = setCookieHeader.find((cookie) => cookie.startsWith("session="));
+  if (!sessionCookie) {
+    throw new Error("Expected a session cookie to be set");
+  }
+  return sessionCookie;
+}
+
+function uniqueEmail(label: string): string {
+  return `${label}-${Date.now()}-${Math.random().toString(36).slice(2)}@example.com`;
+}
 
 describe("Likes", () => {
   let container: StartedPostgreSqlContainer;
@@ -17,6 +31,7 @@ describe("Likes", () => {
   beforeAll(async () => {
     container = await new PostgreSqlContainer("postgres:16-alpine").start();
     process.env.DATABASE_URL = container.getConnectionUri();
+    process.env.JWT_SECRET = "test-jwt-secret";
 
     migrationPool = new Pool({ connectionString: process.env.DATABASE_URL });
     await migrate(drizzle(migrationPool), {
@@ -30,6 +45,7 @@ describe("Likes", () => {
     appPool = moduleRef.get<DbClient>(DATABASE_CONNECTION).$client;
 
     app = moduleRef.createNestApplication();
+    app.use(cookieParser());
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
     await app.init();
   });
@@ -168,6 +184,51 @@ describe("Likes", () => {
       expect(response.body.items).toEqual([]);
       expect(response.body.total).toBe(baseline.body.total);
       expect(response.body.totalPages).toBe(baseline.body.totalPages);
+    });
+  });
+
+  describe("attribution", () => {
+    it("attaches the current user and surfaces their name on the feed when created with a valid session cookie", async () => {
+      const email = uniqueEmail("attribution");
+      const signupResponse = await request(app.getHttpServer())
+        .post("/auth/signup")
+        .send({ name: "Ada Lovelace", email, password: "secret1" })
+        .expect(201);
+      const sessionCookie = extractSessionCookie(signupResponse);
+      const story = `Attributed story marker ${Date.now()}`;
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/likes")
+        .set("Cookie", sessionCookie)
+        .send({ story })
+        .expect(201);
+
+      expect(createResponse.body).not.toHaveProperty("userId");
+
+      const feedResponse = await request(app.getHttpServer()).get("/likes?limit=100").expect(200);
+      const feedItem = feedResponse.body.items.find(
+        (item: { story: string | null }) => item.story === story,
+      );
+
+      expect(feedItem).toMatchObject({ attributedUserName: "Ada Lovelace" });
+    });
+
+    it("leaves the like anonymous and the feed item's attributedUserName null when created without a session cookie", async () => {
+      const story = `Anonymous story marker ${Date.now()}`;
+
+      const createResponse = await request(app.getHttpServer())
+        .post("/likes")
+        .send({ story })
+        .expect(201);
+
+      expect(createResponse.body).not.toHaveProperty("userId");
+
+      const feedResponse = await request(app.getHttpServer()).get("/likes?limit=100").expect(200);
+      const feedItem = feedResponse.body.items.find(
+        (item: { story: string | null }) => item.story === story,
+      );
+
+      expect(feedItem).toMatchObject({ attributedUserName: null });
     });
   });
 

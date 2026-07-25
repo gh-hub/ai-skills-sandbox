@@ -50,9 +50,11 @@ Ask:
 
 Iterate until the user approves. This is the last user checkpoint before code is written.
 
-### 5. Save tickets
+### 5. Delegate the write-up
 
-Write to `plans/{folder}/tickets/` — one file per ticket, numbered from `01` in dependency order (blockers first).
+The approval checkpoint is over — nothing from here on needs the user, so per the Delegation discipline in `SKILL.md`, hand the write-up to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`) instead of writing the files yourself. Give it the approved ticket breakdown (title, blocked-by, what it delivers — for every ticket) and these instructions:
+
+Write to `plans/{folder}/tickets/` — one file per ticket, numbered from `01` in dependency order (blockers first):
 
 ```markdown
 # {NN} — {Ticket title}
@@ -69,25 +71,15 @@ Write to `plans/{folder}/tickets/` — one file per ticket, numbered from `01` i
 
 No file paths or code snippets unless a prototype produced a snippet that encodes a decision better than prose can.
 
-### 6. Update plan files
+Then update the plan files:
 
-Update `PROGRESS.md` first:
-- Mark `tickets` as complete with timestamp
-- Add one `implement/{NN}-{slug}` line per ticket (all unchecked)
-- Set current phase to `implement/01-{slug}`
-- Set `Current ticket path` to `plans/{folder}/tickets/01-{slug}.md`
-- Write last session end-state
+- `PROGRESS.md`: mark `tickets` complete with timestamp, add one `implement/{NN}-{slug}` line per ticket (all unchecked), set current phase to `implement/01-{slug}`, set `Current ticket path` to `plans/{folder}/tickets/01-{slug}.md`, write last session end-state.
+- `CONTEXT.md`: add list of tickets with their numbers and slugs, set current phase to `implement`, set current ticket to `plans/{folder}/tickets/01-{slug}.md` (full path).
+- `INDEX.md`: add link to tickets/, update status to `implement`.
 
-Then update `CONTEXT.md`:
-- Add list of tickets with their numbers and slugs
-- Set current phase to `implement`
-- Set current ticket to `plans/{folder}/tickets/01-{slug}.md` (full path)
+Tell it never to run `git commit`/`git push`, and to report back one line confirming what was written. Wait for it to finish before proceeding.
 
-Update `INDEX.md`:
-- Add link to tickets/
-- Update status to `implement`
-
-### 7. Hand off
+### 6. Hand off
 
 Tell the user tickets are written and give them both ways to continue:
 - Manually, one ticket per session: "Start a new session and run `/dev-workflow` to begin implementing ticket 01."

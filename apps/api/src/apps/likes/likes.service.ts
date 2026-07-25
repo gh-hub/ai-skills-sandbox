@@ -1,4 +1,5 @@
 import { Injectable } from "@nestjs/common";
+import type { AuthUser } from "@thanks-claude/shared-types";
 import { LikesRepository } from "./likes.repository";
 import { CreateLikeDto } from "./dto/create-like.dto";
 import { GetLikesQueryDto } from "./dto/get-likes-query.dto";
@@ -11,13 +12,19 @@ import { computeLikesStats } from "./likes-stats.util";
 export class LikesService {
   constructor(private readonly likesRepository: LikesRepository) {}
 
-  async create(dto: CreateLikeDto): Promise<LikeDto> {
+  async create(dto: CreateLikeDto, currentUser: AuthUser | null): Promise<LikeDto> {
     const like = await this.likesRepository.insertLike({
       story: dto.story,
       hoursSaved: dto.hoursSaved,
+      userId: currentUser?.id,
     });
 
-    return { ...like, createdAt: like.createdAt.toISOString() };
+    return {
+      id: like.id,
+      createdAt: like.createdAt.toISOString(),
+      story: like.story,
+      hoursSaved: like.hoursSaved,
+    };
   }
 
   async getCount(): Promise<LikeCountDto> {
@@ -43,7 +50,13 @@ export class LikesService {
     const rows = await this.likesRepository.getStoryPage(limit, offset);
 
     return {
-      items: rows.map((row) => ({ ...row, createdAt: row.createdAt.toISOString() })),
+      items: rows.map((row) => ({
+        id: row.id,
+        createdAt: row.createdAt.toISOString(),
+        story: row.story,
+        hoursSaved: row.hoursSaved,
+        attributedUserName: row.attributedUserName,
+      })),
       total,
       page,
       limit,

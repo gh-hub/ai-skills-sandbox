@@ -1,10 +1,10 @@
 import { ApiProperty } from "@nestjs/swagger";
 import type { LikesPage } from "@thanks-claude/shared-types";
-import { LikeDto } from "./like.dto";
+import { LikeFeedItemDto } from "./like.dto";
 
 export class LikesPageDto implements LikesPage {
-  @ApiProperty({ type: [LikeDto] })
-  items!: LikeDto[];
+  @ApiProperty({ type: [LikeFeedItemDto] })
+  items!: LikeFeedItemDto[];
 
   @ApiProperty()
   total!: number;

@@ -1,22 +1,45 @@
 "use client";
 
 import { useState } from "react";
+import { UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { UserAvatar } from "@/components/user-avatar";
 import { useLikesFeed } from "@/lib/api-client/likes";
 
 function formatHours(value: number): string {
   return Number.isInteger(value) ? value.toString() : value.toFixed(1);
 }
 
+function StoryByline({ attributedUserName }: { attributedUserName: string | null }) {
+  if (attributedUserName === null) {
+    return (
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <UserRound className="size-6 shrink-0" aria-hidden="true" />
+        <span>Anonymous</span>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <UserAvatar name={attributedUserName} size="sm" />
+      <span>{attributedUserName}</span>
+    </div>
+  );
+}
+
 function StoryCard({
   story,
   hoursSaved,
+  attributedUserName,
 }: {
   story: string;
   hoursSaved: number | null;
+  attributedUserName: string | null;
 }) {
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-border bg-card p-6 text-left">
+      <StoryByline attributedUserName={attributedUserName} />
       <p className="whitespace-pre-wrap">{story}</p>
       {hoursSaved !== null && (
         <p className="text-sm font-medium text-muted-foreground">
@@ -133,7 +156,12 @@ export function StoryFeed() {
       {!feed.isError && feed.data !== undefined && feed.data.items.length > 0 && (
         <ul className="flex flex-col gap-4">
           {feed.data.items.map((item) => (
-            <StoryCard key={item.id} story={item.story ?? ""} hoursSaved={item.hoursSaved} />
+            <StoryCard
+              key={item.id}
+              story={item.story ?? ""}
+              hoursSaved={item.hoursSaved}
+              attributedUserName={item.attributedUserName}
+            />
           ))}
         </ul>
       )}

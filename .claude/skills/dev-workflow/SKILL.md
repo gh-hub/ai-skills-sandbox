@@ -11,7 +11,8 @@ Always start here. Every feature, every session.
 
 If invoked without a plan argument, derive a short, slug-friendly name from what the user described (e.g. `auth-refactor`) and proceed — do not ask the user to name it. Mention the chosen name in passing so they can redirect if they'd prefer a different one.
 
-Create the plan folder:
+Delegate creating the plan folder: spawn a fresh `general-purpose` sub-agent (via the `Agent` tool, not `fork`) telling it to create
+
 ```
 plans/YYYYMMDD_HHMMSS-{name}/
   INDEX.md
@@ -19,7 +20,7 @@ plans/YYYYMMDD_HHMMSS-{name}/
   PROGRESS.md
 ```
 
-`plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `plans/` under a subdirectory; if `/dev-workflow` is invoked from inside a subdirectory, still resolve `plans/` against the repo root. Use the templates in `plan-structure.md` for each file. Then begin the **grill phase** by reading `phases/grill.md` and following it.
+using the templates in `plan-structure.md`, with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `plans/` under a subdirectory; if `/dev-workflow` is invoked from inside a subdirectory, still resolve `plans/` against the repo root. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `phases/grill.md` and following it.
 
 ## Resuming a plan
 
@@ -57,6 +58,13 @@ The loop, from the conductor's own turn:
 5. Stop the loop when `review-decide` reaches `done`/`accept` (plan archived) or `stop` (paused) — report the final outcome. Also stop if a sub-agent reports an error rather than a clean completion; surface it and let the user decide how to proceed instead of continuing to spawn more agents on top of a broken state.
 
 Tickets with no blocking edges between them may be delegated as concurrent sub-agents instead of one at a time — only when their `Blocked by` fields don't create a dependency.
+
+## Delegation discipline
+
+Beyond the whole-phase delegation above, each phase file also delegates its own mechanical write-up (writing files, updating `PROGRESS.md`/`CONTEXT.md`/`INDEX.md`) to a fresh `general-purpose` sub-agent once no further user input is needed — same pattern as `phases/grill.md` step 4. This keeps synthesis and tool-call noise out of whichever session is running the phase, not just under auto mode. Two cases:
+
+- **Phases that can be delegated whole under auto mode** (`spec`, `review/round-{N}/tickets`, `implement/{ticket}`): if you're running the phase file directly in conversation with the user, delegate its non-interactive tail to a fresh sub-agent. If you were yourself already spawned as a sub-agent to run this whole phase, skip the extra hop and just write the files directly — you have no user-facing context to protect.
+- **Phases that always run live** (`tickets`, `review/round-{N}/decide`): the interactive checkpoint always stays in your own turn, but once the user's input is collected, delegate the remaining mechanical writes to a fresh sub-agent unconditionally — there's no whole-phase delegation here to duplicate.
 
 ## User checkpoints
 

@@ -15,26 +15,21 @@ Turn the grill output into a structured spec. No interview — synthesize what t
 
 Read `PROGRESS.md` first. Confirm the current phase is `spec`. If PROGRESS.md says a different phase, stop and tell the user — do not proceed.
 
-Read:
-- `plans/{folder}/CONTEXT.md`
-- `plans/{folder}/grill/requirements.md`
-- `plans/{folder}/grill/decisions.md`
-- `plans/{folder}/grill/glossary.md`
-- Any ADRs in `plans/{folder}/grill/`
+### 2. Delegate synthesis and write-up
 
-Do not ask the user questions. If something is genuinely ambiguous and cannot be resolved from the grill output, note it in the spec under "Further Notes" as an open question.
+Nothing in this phase needs the user — it's pure synthesis of grill output. Per the Delegation discipline in `SKILL.md`: if you're running this phase live (in conversation with the user), hand the rest of this phase to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`). If you were yourself spawned as a sub-agent to run this whole phase (e.g. under auto mode), just do the following steps directly instead of spawning yet another sub-agent.
 
-### 2. Explore the codebase (if one exists)
+Whoever does the work (you or the sub-agent) should:
 
-Understand the current state of the code in the area being changed. Use the domain glossary vocabulary throughout the spec.
+1. Read `plans/{folder}/CONTEXT.md`, `plans/{folder}/grill/requirements.md`, `plans/{folder}/grill/decisions.md`, `plans/{folder}/grill/glossary.md`, and any ADRs in `plans/{folder}/grill/`. Not ask the user questions — if something is genuinely ambiguous and cannot be resolved from the grill output, note it in the spec under "Further Notes" as an open question.
+2. Explore the codebase (if one exists) to understand the current state of the area being changed. Use the domain glossary vocabulary throughout the spec.
+3. Identify test seams: sketch the seams at which the feature will be tested. Prefer existing seams. Use the highest seam possible. Propose new seams only if no existing one fits, and at the highest point available.
+4. Write the spec to `plans/{folder}/spec.md` using the template below.
+5. Update `PROGRESS.md` first: mark `spec` complete with timestamp, set current phase to `tickets`, write last session end-state. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
 
-### 3. Identify test seams
+If delegating, give the sub-agent the plan folder path and these instructions verbatim, plus: never run `git commit`/`git push`, never ask the user anything, and report back one line confirming what was written. Wait for it to finish before proceeding.
 
-Sketch the seams at which the feature will be tested. Prefer existing seams. Use the highest seam possible. Propose new seams only if no existing one fits, and at the highest point available.
-
-### 4. Write the spec
-
-Save to `plans/{folder}/spec.md` using this template:
+Spec template:
 
 ---
 
@@ -82,21 +77,6 @@ Open questions, risks, or things to revisit.
 
 ---
 
-### 5. Update plan files
-
-Update `PROGRESS.md` first:
-- Mark `spec` as complete with timestamp
-- Set current phase to `tickets`
-- Write last session end-state
-
-Then update `CONTEXT.md`:
-- Add link to spec.md
-- Set current phase to `tickets`
-
-Update `INDEX.md`:
-- Add link to spec.md
-- Update status to `tickets`
-
-### 6. Hand off
+### 3. Hand off
 
 Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list and review-round checkpoints.

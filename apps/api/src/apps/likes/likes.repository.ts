@@ -1,13 +1,22 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, count, desc, isNotNull, ne, sum } from "drizzle-orm";
+import { and, count, desc, eq, isNotNull, ne, sum } from "drizzle-orm";
 import { DATABASE_CONNECTION, type DbClient } from "../../db/db.module";
-import { likes } from "../../db/schema";
+import { likes, users } from "../../db/schema";
 
 export type LikeRow = typeof likes.$inferSelect;
+
+export type LikeFeedRow = {
+  id: string;
+  createdAt: Date;
+  story: string | null;
+  hoursSaved: number | null;
+  attributedUserName: string | null;
+};
 
 export type NewLikeValues = {
   story?: string;
   hoursSaved?: number;
+  userId?: string;
 };
 
 export type LikesStatsAggregateRow = {
@@ -51,10 +60,17 @@ export class LikesRepository {
     return value;
   }
 
-  async getStoryPage(limit: number, offset: number): Promise<LikeRow[]> {
+  async getStoryPage(limit: number, offset: number): Promise<LikeFeedRow[]> {
     return this.db
-      .select()
+      .select({
+        id: likes.id,
+        createdAt: likes.createdAt,
+        story: likes.story,
+        hoursSaved: likes.hoursSaved,
+        attributedUserName: users.name,
+      })
       .from(likes)
+      .leftJoin(users, eq(likes.userId, users.id))
       .where(this.hasStoryFilter())
       .orderBy(desc(likes.createdAt))
       .limit(limit)
