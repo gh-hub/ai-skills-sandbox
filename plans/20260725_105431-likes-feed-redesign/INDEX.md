@@ -4,7 +4,7 @@
 A paginated, public feed of user-shared stories with honest hours-saved stats (reported + estimated), plus a full claude.com-inspired visual redesign of the "Thanks, Claude" landing page.
 
 ## Status
-Current phase: review-pending-decision
+Current phase: complete
 
 ## Links
 - [PROGRESS.md](PROGRESS.md)

@@ -27,8 +27,10 @@ A paginated, public feed of user-shared stories (with hours-saved stats, reporte
 - plans/20260725_105431-likes-feed-redesign/review/round-1/tickets/01-remove-what-comment-in-page-tsx.md (2026-07-25) — round-1 review-fix ticket. Deleted the WHAT-not-WHY comment block (`/* Stats band (ticket 06) followed by the paginated story feed (ticket 07)... */`) above the `#stats-and-feed` insertion point in `apps/web/app/page.tsx`. No genuine WHY was found to justify a replacement comment — the ordering it described is fully self-evident from the JSX (`<StatsBand />` then `<StoryFeed />`) directly below where the comment sat — so it was deleted outright, per the ticket's own conditional acceptance criterion. `git diff` confirmed this session's change is isolated to exactly that deletion, nothing else in `page.tsx` touched. All 4 acceptance criteria verified: comment deleted, no WHY-replacement needed (and none written), no other content/structure/behavior changed, typecheck clean, full e2e suite (9/9, rebuilt `web` image first) passing unchanged. See PROGRESS.md's "Review-round-1 fix ticket" entry for full detail. This resolves round 1's single BLOCK finding; the plan now moves to `review/round-2/tickets`.
 
 ## Current state
-Phase: review/round-2/decide
+Phase: complete
 Current ticket: none
+
+Plan complete. Round 2 review had 0 BLOCK, 6 DEBT; user decision "done". All 14 accumulated DEBT items exported to plans/tech-debt/. Archived to plans/done/20260725_105431-likes-feed-redesign/.
 
 ## Round 1 review findings (2026-07-25)
 1 BLOCK, 8 DEBT. Full detail: `plans/20260725_105431-likes-feed-redesign/review/round-1/report.md`. DEBT log: `review/tech-debt.md`. User decision: **fix**. The single BLOCK ticket (`review/round-1/tickets/01-remove-what-comment-in-page-tsx.md`) is now implemented and verified (see Completed tickets above / PROGRESS.md). The 8 DEBT items remain logged in `review/tech-debt.md`, not part of this fix round.

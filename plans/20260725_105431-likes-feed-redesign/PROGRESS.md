@@ -1,10 +1,10 @@
 # Progress: likes-feed-redesign
 
 ## Current phase
-review/round-2/decide
+complete (2026-07-25)
 
 ## Current ticket path
-(none)
+(none — plan complete)
 
 ## Phases
 - [x] grill (2026-07-25)
@@ -22,10 +22,14 @@ review/round-2/decide
 - [x] review/round-1/decide (2026-07-25) — decision: fix
 - [x] implement/review-round-1-01-remove-what-comment-in-page-tsx (2026-07-25)
 - [x] review/round-2/tickets (2026-07-25)
+- [x] review/round-2/decide (2026-07-25) — decision: done
 
 ## Review rounds
 - Round 1 (2026-07-25): 1 BLOCK, 8 DEBT. See review/round-1/report.md.
 - Round 2 (2026-07-25): 0 BLOCK, 6 DEBT. See review/round-2/report.md.
+
+## Plan complete (2026-07-25)
+User decision at round 2: **done**. No BLOCKs remained. All 14 accumulated DEBT items (8 from round 1, 6 from round 2) exported to `plans/tech-debt/` — see `review/tech-debt.md` for the per-item mapping. Plan archived to `plans/done/20260725_105431-likes-feed-redesign/`.
 
 ## Last session end-state
 Ticket 02 (aggregate stats API) implemented and all acceptance criteria verified:
