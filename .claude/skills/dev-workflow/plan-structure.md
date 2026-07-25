@@ -7,9 +7,9 @@ Canonical definition of every file and folder inside a plan.
 ```
 plans/
   coding-rules/          ← optional, project-specific rules only; not auto-created
-  tech-debt/              ← global backlog, one file per open DEBT item, written by the review phase's archive step
+  tech-debt/              ← global backlog, one file per open DEBT item, written by the review-decide phase's archive step
     YYYYMMDD_HHMMSS-{slug}.md
-  done/                  ← completed plans, moved here by the review phase
+  done/                  ← completed plans, moved here by the review-decide phase
     YYYYMMDD_HHMMSS-{name}/
   YYYYMMDD_HHMMSS-{name}/  ← in-progress plans (only these show here)
 ```
@@ -112,7 +112,8 @@ grill
 - [ ] tickets
 - [ ] implement/01-{slug}
 - [ ] implement/02-{slug}
-- [ ] review/round-1
+- [ ] review/round-1/tickets
+- [ ] review/round-1/decide
 
 ## Review rounds
 (none yet)
@@ -121,7 +122,7 @@ grill
 What was done, what comes next — written at end of each session.
 ```
 
-`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
+`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review-decide.md whenever a new ticket becomes current; cleared when all tickets are done.
 
 ---
 
@@ -162,7 +163,7 @@ Numbered from 01 in dependency order (blockers first).
 
 ### review/
 
-One subfolder per review round. 
+One subfolder per review round. `report.md`, `tickets/`, and the `tech-debt.md` appends are written by `phases/review-tickets.md`; the round's fix/accept/escalate/stop decision is recorded by `phases/review-decide.md`.
 
 ```
 review/
@@ -189,7 +190,7 @@ When the plan archives (`done`/`accept`), every remaining `[DEBT]` line (not `[F
 
 ## plans/tech-debt/
 
-Lives at the project root (not inside a plan folder), populated only by the review phase's archive step (`phases/review.md`, step 10) — one file per DEBT item still open when its plan archived.
+Lives at the project root (not inside a plan folder), populated only by the review-decide phase's archive step (`phases/review-decide.md`, step 4) — one file per DEBT item still open when its plan archived.
 
 ```
 tech-debt/

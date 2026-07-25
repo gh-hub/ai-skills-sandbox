@@ -48,7 +48,9 @@ Go through each acceptance criterion in the ticket. Mark each one complete (or n
 
 Update `PROGRESS.md` first:
 - Mark this ticket as complete with timestamp
-- Set current phase to the next ticket slug or `review` if all tickets done
+- Set current phase to the next ticket slug, or — if all tickets done — the next review phase:
+  - All *original* tickets (from `tickets/`) done, no review round has started yet → `review/round-1/tickets`
+  - All tickets in `review/round-{N}/tickets/` done → `review/round-{N+1}/tickets`
 - Set `Current ticket path` to the full path of the next ticket, or `(none)` if all tickets done
 - Write last session end-state: what was built, what the next session needs to know
 
