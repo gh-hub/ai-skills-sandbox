@@ -6,6 +6,7 @@ import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers
 import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
+import type { DbClient } from "../db/db.module";
 
 describe("Likes", () => {
   let container: StartedPostgreSqlContainer;
@@ -23,10 +24,10 @@ describe("Likes", () => {
     });
 
     const { AppModule } = await import("../app.module");
-    const { pool } = await import("../db/client");
-    appPool = pool;
+    const { DATABASE_CONNECTION } = await import("../db/db.module");
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
+    appPool = moduleRef.get<DbClient>(DATABASE_CONNECTION).$client;
 
     app = moduleRef.createNestApplication();
     app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));

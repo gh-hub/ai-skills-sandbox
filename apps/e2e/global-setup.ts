@@ -1,5 +1,6 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
+import { wasAlreadyRunning } from "./playwright.config";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const MAX_ATTEMPTS = 30;
@@ -29,11 +30,11 @@ function truncateLikesTable(): void {
   );
 }
 
-export default async function globalSetup(): Promise<void> {
+export default async function globalSetup(): Promise<() => Promise<void>> {
   for (let attempt = 1; attempt <= MAX_ATTEMPTS; attempt++) {
     try {
       truncateLikesTable();
-      return;
+      break;
     } catch (error) {
       if (attempt === MAX_ATTEMPTS) {
         throw new Error(
@@ -43,4 +44,11 @@ export default async function globalSetup(): Promise<void> {
       await sleep(RETRY_DELAY_MS);
     }
   }
+
+  return async () => {
+    if (wasAlreadyRunning) {
+      return;
+    }
+    execFileSync("docker", ["compose", "down"], { cwd: REPO_ROOT, stdio: "pipe" });
+  };
 }

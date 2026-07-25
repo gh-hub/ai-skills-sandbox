@@ -11,10 +11,6 @@ Always start here. Every feature, every session.
 
 If invoked without a plan argument, derive a short, slug-friendly name from what the user described (e.g. `auth-refactor`) and proceed — do not ask the user to name it. Mention the chosen name in passing so they can redirect if they'd prefer a different one.
 
-If `plans/coding-rules/` does not exist in the current project, create it with:
-- `plans/coding-rules/INDEX.md` — see the template in `plan-structure.md`
-- `plans/coding-rules/general.md` — see the template in `plan-structure.md`
-
 Create the plan folder:
 ```
 plans/YYYYMMDD_HHMMSS-{name}/
@@ -45,18 +41,19 @@ review    → phases/review.md      (one session per round)
 
 ## Auto mode
 
-`auto.sh` (in this skill's folder) drives dev-workflow unattended across fresh headless sessions, so you don't have to manually `/clear` and re-run between tickets. Run it from the project's repository root — `plans/` always lives there, even if the ticket work itself is under a subdirectory like `apps/web/`:
+No external script — you (the current session) act as the conductor, spawning a fresh `general-purpose` sub-agent (via the `Agent` tool, not `fork` — it must NOT share your context) for each unattended unit of work, waiting for it to finish, then re-reading `PROGRESS.md` to decide what's next. This keeps each ticket/phase's exploration and tool noise out of your own context instead of piling up across an entire plan.
 
-```
-.claude/skills/dev-workflow/auto.sh <plan-name-or-path>
-```
+Triggered when the user asks to run the rest of a plan autonomously (or invokes `/dev-workflow --auto <plan>` directly). Requires grill to already be complete — grill is a live interview, and a sub-agent has no user to interview. If the current phase is `grill`, stop and say so.
 
-It requires grill to already be complete — grill is a live interview, and there's no one there to answer headless. It runs spec, each implement ticket, and review generation autonomously, one fresh session per phase/ticket, using `--permission-mode auto` (Claude Code's built-in risk classifier) plus a hard block on `git commit`/`git push`. It stops and prompts you in the terminal at the two checkpoints dev-workflow defines: ticket-list approval and the review-round decision.
+The loop, from the conductor's own turn:
 
-`auto.sh` invokes this skill as `/dev-workflow --auto <plan>` — not meant to be typed by hand. When invoked with `--auto`:
-- Strip `--auto` before treating the rest of the argument as the plan name/path.
-- If the current phase is `grill`, stop and say grill needs to run interactively — do not attempt to interview no one.
-- At the end of any phase, skip the "Start a new session and run `/dev-workflow`" hand-off sentence (a driver script owns session boundaries) — state what completed and the new current phase in one line instead. Every other step of the phase runs exactly as written, including both user checkpoints — `--auto` changes only that closing sentence, never a decision.
+1. Read `PROGRESS.md`, get the current phase.
+2. **`spec`** and **`implement/{ticket}`** — no user input needed mid-phase, so delegate: spawn a fresh sub-agent with a self-contained prompt telling it to read and follow the matching file in `phases/` for this plan (and, for implement, which ticket), update `PROGRESS.md`/`CONTEXT.md`/`INDEX.md` exactly as that phase file says, never run `git commit`/`git push`, never ask the user anything (make the reasonable call and note ambiguities in the plan files instead of stopping), and report back one line: what completed and the new current phase.
+3. **`tickets`** and **`review`** — these have a real user checkpoint (ticket-list approval; round decision) that only you, in this live conversation, can collect. Do not delegate these to a sub-agent — run the phase file yourself, exactly as normal, and let the checkpoint surface as an ordinary reply from the user.
+4. After a delegated sub-agent returns, or after you finish running `tickets`/`review` yourself, re-read `PROGRESS.md` and repeat from step 1.
+5. Stop the loop when review reaches `done`/`accept` (plan archived) or `stop` (paused) — report the final outcome. Also stop if a sub-agent reports an error rather than a clean completion; surface it and let the user decide how to proceed instead of continuing to spawn more agents on top of a broken state.
+
+Tickets with no blocking edges between them may be delegated as concurrent sub-agents instead of one at a time — only when their `Blocked by` fields don't create a dependency.
 
 ## User checkpoints
 
@@ -81,7 +78,7 @@ Everything else runs autonomously.
 
 ## Coding rules
 
-Before implement or review: read `plans/coding-rules/INDEX.md` and load only the rule files relevant to the current ticket's tech stack. Do not load rules that don't apply.
+Before implement or review: read `coding-rules/INDEX.md` (in this skill's folder — the shipped defaults), and also `plans/coding-rules/INDEX.md` if it exists in the current project (project-specific additions/overrides). From both, load only the rule files relevant to the current ticket's tech stack — a `file` row is read directly, a `skill` row is invoked with the `Skill` tool. Do not load rules that don't apply.
 
 ## Reference
 

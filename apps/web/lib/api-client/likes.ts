@@ -6,14 +6,18 @@ type CreateLikeBody = components["schemas"]["CreateLikeDto"];
 
 export const likeCountQueryKey = ["likes", "count"] as const;
 
+function throwApiError(error: unknown, message: string): never {
+  console.error(error);
+  throw new Error(message, { cause: error });
+}
+
 export function useLikeCount() {
   return useQuery({
     queryKey: likeCountQueryKey,
     queryFn: async () => {
       const { data, error } = await apiClient.GET("/likes/count");
       if (error) {
-        console.error(error);
-        throw new Error("Failed to load like count");
+        throwApiError(error, "Failed to load like count");
       }
       return data.count;
     },
@@ -27,8 +31,7 @@ export function useSubmitLike() {
     mutationFn: async (body: CreateLikeBody) => {
       const { error } = await apiClient.POST("/likes", { body });
       if (error) {
-        console.error(error);
-        throw new Error("Failed to submit like");
+        throwApiError(error, "Failed to submit like");
       }
     },
     onSuccess: () => {

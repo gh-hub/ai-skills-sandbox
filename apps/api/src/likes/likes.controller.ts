@@ -1,15 +1,14 @@
 import { Controller, Get, Post, Body, Inject } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
 import { count } from "drizzle-orm";
-import { DATABASE_CONNECTION } from "../db/db.module";
-import type { db as Database } from "../db/client";
+import { DATABASE_CONNECTION, type DbClient } from "../db/db.module";
 import { likes } from "../db/schema";
 import { CreateLikeDto } from "./dto/create-like.dto";
 import { LikeCountDto, LikeDto } from "./dto/like.dto";
 
 @Controller("likes")
 export class LikesController {
-  constructor(@Inject(DATABASE_CONNECTION) private readonly db: typeof Database) {}
+  constructor(@Inject(DATABASE_CONNECTION) private readonly db: DbClient) {}
 
   @Post()
   @ApiCreatedResponse({ type: LikeDto })

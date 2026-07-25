@@ -99,4 +99,4 @@ Update `INDEX.md`:
 
 ### 6. Hand off
 
-Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase."
+Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list and review-round checkpoints.

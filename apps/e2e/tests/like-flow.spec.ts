@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { getLikeCount } from "./helpers";
 
 test("clicking Like increases the displayed count by exactly one", async ({ page }) => {
   await page.goto("/");
@@ -6,7 +7,7 @@ test("clicking Like increases the displayed count by exactly one", async ({ page
   const likeCount = page.getByText(/\d+ likes/);
   await expect(likeCount).toBeVisible();
 
-  const before = Number((await likeCount.textContent())?.match(/(\d+) likes/)?.[1]);
+  const before = await getLikeCount(page);
 
   await page.getByRole("button", { name: "Like" }).click();
 

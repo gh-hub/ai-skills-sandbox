@@ -1,4 +1,5 @@
 import { expect, test } from "@playwright/test";
+import { getLikeCount } from "./helpers";
 
 test("submitting a story collapses the form and increases the like count by exactly one", async ({
   page,
@@ -6,7 +7,7 @@ test("submitting a story collapses the form and increases the like count by exac
   await page.goto("/");
 
   const likeCount = page.getByText(/\d+ likes/);
-  const before = Number((await likeCount.textContent())?.match(/(\d+) likes/)?.[1]);
+  const before = await getLikeCount(page);
 
   await page.getByRole("button", { name: "Share a story" }).click();
   await page.getByLabel("Story (optional)").fill("Claude helped me ship this faster.");
@@ -23,7 +24,7 @@ test("a negative hours-saved value blocks submission and leaves the like count u
   await page.goto("/");
 
   const likeCount = page.getByText(/\d+ likes/);
-  const before = Number((await likeCount.textContent())?.match(/(\d+) likes/)?.[1]);
+  const before = await getLikeCount(page);
 
   await page.getByRole("button", { name: "Share a story" }).click();
   await page.getByLabel("Hours saved (optional)").fill("-5");
