@@ -4,7 +4,7 @@ import { getLikeCount } from "./helpers";
 test("clicking Like increases the displayed count by exactly one", async ({ page }) => {
   await page.goto("/");
 
-  const likeCount = page.getByText(/\d+ likes/);
+  const likeCount = page.getByText(/^\d+ likes$/);
   await expect(likeCount).toBeVisible();
 
   const before = await getLikeCount(page);

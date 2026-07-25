@@ -4,6 +4,7 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
+import { AuthModal } from "@/components/auth-modal";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -15,7 +16,16 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { useLikeCount, useSubmitLike } from "@/lib/api-client/likes";
+import { SparkMark } from "@/components/spark-mark";
+import { StatsBand } from "@/components/stats-band";
+import { StoryFeed } from "@/components/story-feed";
+import { UserAvatar } from "@/components/user-avatar";
+import { useLogout, useMe } from "@/lib/api-client/auth";
+import {
+  useLikeCount,
+  useLikesStats,
+  useSubmitLike,
+} from "@/lib/api-client/likes";
 
 const storyFormSchema = z.object({
   story: z.string().optional(),
@@ -48,12 +58,70 @@ function renderLikeCount(likeCount: ReturnType<typeof useLikeCount>) {
   return `${likeCount.data} likes`;
 }
 
+function HeaderAuthControl() {
+  const me = useMe();
+  const logout = useLogout();
+
+  if (me.isLoading || me.data === undefined) {
+    return null;
+  }
+
+  if (me.data === null) {
+    return <AuthModal />;
+  }
+
+  return (
+    <div className="flex items-center gap-2">
+      <UserAvatar name={me.data.name} size="sm" />
+      <Button
+        onClick={() => logout.mutate()}
+        disabled={logout.isPending}
+        variant="ghost"
+        size="sm"
+      >
+        Log out
+      </Button>
+    </div>
+  );
+}
+
+function formatHeroStatNumber(value: number): string {
+  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+}
+
+function renderHeroStatsLine(stats: ReturnType<typeof useLikesStats>) {
+  if (stats.isError) {
+    return (
+      <span role="alert">
+        Unable to load stats.{" "}
+        <Button
+          onClick={() => stats.refetch()}
+          variant="link"
+          size="sm"
+          className="h-auto p-0 font-mono"
+        >
+          Retry
+        </Button>
+      </span>
+    );
+  }
+
+  if (stats.isLoading || stats.data === undefined) {
+    return "loading…";
+  }
+
+  return `${formatHeroStatNumber(stats.data.totalLikes)} likes · ${formatHeroStatNumber(
+    stats.data.estimatedTotalHoursSaved
+  )}h saved so far`;
+}
+
 export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const likeCount = useLikeCount();
   const likeSubmit = useSubmitLike();
   const storySubmit = useSubmitLike();
+  const heroStats = useLikesStats();
 
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
@@ -79,62 +147,163 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <h1>Thanks, Claude</h1>
+    <div className="flex min-h-screen flex-col">
+      <main className="flex-1">
+        <section className="mx-auto max-w-3xl px-6 pt-20 sm:pt-28">
+          <div className="overflow-hidden rounded-lg border border-border bg-card font-mono text-sm">
+            <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-3">
+              <span className="flex gap-1.5" aria-hidden="true">
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+              </span>
+              <h1 className="text-sm font-medium text-foreground sm:text-base">
+                Thanks, Claude (code)
+              </h1>
+              <div className="ml-auto">
+                <HeaderAuthControl />
+              </div>
+            </div>
 
-      {likeSubmit.isError && (
-        <p role="alert">Couldn't submit your like. Please try again.</p>
-      )}
+            <div className="flex flex-col sm:flex-row">
+              <div className="flex flex-1 flex-col gap-4 p-6">
+                <p className="text-foreground">Welcome!</p>
+                <SparkMark size={40} />
+                <p className="text-muted-foreground">
+                  {renderHeroStatsLine(heroStats)}
+                </p>
+                <p className="text-muted-foreground">~/thanks-claude</p>
+              </div>
 
-      <p>
-        <Button onClick={() => likeSubmit.mutate({})} disabled={likeSubmit.isPending}>
-          Like
-        </Button>{" "}
-        {renderLikeCount(likeCount)}
-      </p>
+              <div
+                aria-hidden="true"
+                className="border-t border-border sm:border-t-0 sm:border-l"
+              />
 
-      <Button onClick={() => setIsExpanded((prev) => !prev)}>
-        {isExpanded ? "Hide story" : "Share a story"}
-      </Button>
+              <div className="flex flex-1 flex-col gap-4 p-6">
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-foreground">
+                    # Tips for saying thanks
+                  </p>
+                  <p className="text-muted-foreground">
+                    Hit the Like button below, or expand &quot;Share a
+                    story&quot; to tell us how Claude helped.
+                  </p>
+                </div>
 
-      {isExpanded && (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleStorySubmit)}>
-            {storySubmit.isError && (
-              <p role="alert">Couldn't submit your story. Please try again.</p>
-            )}
-            <FormField
-              control={form.control}
-              name="story"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Story (optional)</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="hoursSaved"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hours saved (optional)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={storySubmit.isPending}>
-              Submit
+                <div aria-hidden="true" className="border-t border-border" />
+
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-foreground">
+                    # What&apos;s new
+                  </p>
+                  <p className="text-muted-foreground">
+                    You can now share your own story alongside a like, and
+                    browse stories from others below.
+                  </p>
+                </div>
+
+                <a
+                  href="#stats-and-feed"
+                  className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  See stories below ↓
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 pt-10 pb-20 text-center sm:pb-28">
+          {likeSubmit.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              Couldn&apos;t submit your like. Please try again.
+            </p>
+          )}
+
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => likeSubmit.mutate({})}
+              disabled={likeSubmit.isPending}
+              size="lg"
+            >
+              Like
             </Button>
-          </form>
-        </Form>
-      )}
-    </main>
+            <span className="text-sm text-muted-foreground">
+              {renderLikeCount(likeCount)}
+            </span>
+          </div>
+
+          <div className="w-full max-w-md">
+            <Button
+              onClick={() => setIsExpanded((prev) => !prev)}
+              variant="outline"
+            >
+              {isExpanded ? "Hide story" : "Share a story"}
+            </Button>
+
+            {isExpanded && (
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleStorySubmit)}
+                  className="mt-4 flex flex-col gap-4 rounded-lg border border-border bg-card p-6 text-left shadow-xs"
+                >
+                  {storySubmit.isError && (
+                    <p role="alert" className="text-sm text-destructive">
+                      Couldn&apos;t submit your story. Please try again.
+                    </p>
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="story"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Story (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="hoursSaved"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hours saved (optional)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" disabled={storySubmit.isPending}>
+                    Submit
+                  </Button>
+                </form>
+              </Form>
+            )}
+          </div>
+        </section>
+
+        <div
+          id="stats-and-feed"
+          className="mx-auto flex max-w-4xl flex-col gap-16 px-6 pb-20"
+        >
+          <StatsBand />
+          <StoryFeed />
+        </div>
+      </main>
+
+      <footer className="border-t border-border bg-card/50 py-10">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 px-6 text-center text-sm text-muted-foreground">
+          <SparkMark size={20} />
+          <p>Thanks, Claude — an independent appreciation project.</p>
+          <p>Not affiliated with or endorsed by Anthropic.</p>
+        </div>
+      </footer>
+    </div>
   );
 }

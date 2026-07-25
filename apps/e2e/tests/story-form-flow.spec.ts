@@ -6,7 +6,7 @@ test("submitting a story collapses the form and increases the like count by exac
 }) => {
   await page.goto("/");
 
-  const likeCount = page.getByText(/\d+ likes/);
+  const likeCount = page.getByText(/^\d+ likes$/);
   const before = await getLikeCount(page);
 
   await page.getByRole("button", { name: "Share a story" }).click();
@@ -23,7 +23,7 @@ test("a negative hours-saved value blocks submission and leaves the like count u
 }) => {
   await page.goto("/");
 
-  const likeCount = page.getByText(/\d+ likes/);
+  const likeCount = page.getByText(/^\d+ likes$/);
   const before = await getLikeCount(page);
 
   await page.getByRole("button", { name: "Share a story" }).click();
