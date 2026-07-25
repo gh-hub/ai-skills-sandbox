@@ -18,7 +18,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { SparkMark } from "@/components/spark-mark";
 import { StatsBand } from "@/components/stats-band";
 import { StoryFeed } from "@/components/story-feed";
-import { useLikeCount, useSubmitLike } from "@/lib/api-client/likes";
+import {
+  useLikeCount,
+  useLikesStats,
+  useSubmitLike,
+} from "@/lib/api-client/likes";
 
 const storyFormSchema = z.object({
   story: z.string().optional(),
@@ -51,12 +55,43 @@ function renderLikeCount(likeCount: ReturnType<typeof useLikeCount>) {
   return `${likeCount.data} likes`;
 }
 
+function formatHeroStatNumber(value: number): string {
+  return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+}
+
+function renderHeroStatsLine(stats: ReturnType<typeof useLikesStats>) {
+  if (stats.isError) {
+    return (
+      <span role="alert">
+        Unable to load stats.{" "}
+        <Button
+          onClick={() => stats.refetch()}
+          variant="link"
+          size="sm"
+          className="h-auto p-0 font-mono"
+        >
+          Retry
+        </Button>
+      </span>
+    );
+  }
+
+  if (stats.isLoading || stats.data === undefined) {
+    return "loading…";
+  }
+
+  return `${formatHeroStatNumber(stats.data.totalLikes)} likes · ${formatHeroStatNumber(
+    stats.data.estimatedTotalHoursSaved
+  )}h saved so far`;
+}
+
 export default function Home() {
   const [isExpanded, setIsExpanded] = useState(false);
 
   const likeCount = useLikeCount();
   const likeSubmit = useSubmitLike();
   const storySubmit = useSubmitLike();
+  const heroStats = useLikesStats();
 
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
@@ -84,18 +119,69 @@ export default function Home() {
   return (
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
-        <section className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 py-20 text-center sm:py-28">
-          <SparkMark size={48} />
+        <section className="mx-auto max-w-3xl px-6 pt-20 sm:pt-28">
+          <div className="overflow-hidden rounded-lg border border-border bg-card font-mono text-sm">
+            <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-3">
+              <span className="flex gap-1.5" aria-hidden="true">
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+                <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
+              </span>
+              <h1 className="text-sm font-medium text-foreground sm:text-base">
+                Thanks, Claude (code)
+              </h1>
+            </div>
 
-          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
-            Thanks, Claude
-          </h1>
+            <div className="flex flex-col sm:flex-row">
+              <div className="flex flex-1 flex-col gap-4 p-6">
+                <p className="text-foreground">Welcome!</p>
+                <SparkMark size={40} />
+                <p className="text-muted-foreground">
+                  {renderHeroStatsLine(heroStats)}
+                </p>
+                <p className="text-muted-foreground">~/thanks-claude</p>
+              </div>
 
-          <p className="max-w-md text-balance text-muted-foreground">
-            A small way to say thank you — and to see how much time Claude
-            has given back to people like you.
-          </p>
+              <div
+                aria-hidden="true"
+                className="border-t border-border sm:border-t-0 sm:border-l"
+              />
 
+              <div className="flex flex-1 flex-col gap-4 p-6">
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-foreground">
+                    # Tips for saying thanks
+                  </p>
+                  <p className="text-muted-foreground">
+                    Hit the Like button below, or expand &quot;Share a
+                    story&quot; to tell us how Claude helped.
+                  </p>
+                </div>
+
+                <div aria-hidden="true" className="border-t border-border" />
+
+                <div className="flex flex-col gap-1">
+                  <p className="font-medium text-foreground">
+                    # What&apos;s new
+                  </p>
+                  <p className="text-muted-foreground">
+                    You can now share your own story alongside a like, and
+                    browse stories from others below.
+                  </p>
+                </div>
+
+                <a
+                  href="#stats-and-feed"
+                  className="text-muted-foreground underline-offset-4 hover:text-foreground hover:underline"
+                >
+                  See stories below ↓
+                </a>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 pt-10 pb-20 text-center sm:pb-28">
           {likeSubmit.isError && (
             <p role="alert" className="text-sm text-destructive">
               Couldn&apos;t submit your like. Please try again.

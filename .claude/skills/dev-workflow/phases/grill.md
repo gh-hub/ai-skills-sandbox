@@ -42,41 +42,35 @@ Focus areas:
 
 Before saving anything, summarize what you've heard and ask the user to confirm. Fix anything that's off.
 
-### 4. Save output
+### 4. Delegate the write-up
+
+The interview is over — nothing from here on needs the user, so hand the write-up to a subagent (`Agent` tool, `general-purpose` type, not `fork`: it needs none of your conversation history, only the confirmed material below) instead of writing the files yourself. This keeps the formatting/tool-call noise out of your context.
+
+Give it a self-contained prompt with everything gathered in the interview — problem, actors, done criteria, boundaries, constraints, each confirmed decision (with reasoning and rejected alternatives), glossary terms, and which decisions have lasting architectural consequences — plus these instructions:
 
 Write to `plans/{folder}/grill/`:
 
-**requirements.md** — what we're building, written from the user's perspective. Not a spec, not a design. Just: what problem, what solution, what done looks like, what's out of scope.
+- **requirements.md** — what we're building, written from the user's perspective. Not a spec, not a design. Just: what problem, what solution, what done looks like, what's out of scope.
+- **decisions.md** — every load-bearing decision made during the interview. Format:
+  ```
+  ## Decision: {title}
+  Decided: {what was decided}
+  Why: {reason given}
+  Alternatives rejected: {if any}
+  ```
+- **glossary.md** — domain terms defined or clarified during the session. One term per entry.
+- **ADR-NNN.md** — one file per architectural decision that has lasting consequences (tech choice, schema shape, API contract, integration approach). Only for decisions the team will need to remember in 6 months.
 
-**decisions.md** — every load-bearing decision made during the interview. Format:
-```
-## Decision: {title}
-Decided: {what was decided}
-Why: {reason given}
-Alternatives rejected: {if any}
-```
+Then update the plan files:
 
-**glossary.md** — domain terms defined or clarified during the session. One term per entry.
+- `PROGRESS.md`: mark `grill` complete with timestamp, set current phase to `spec`, write last session end-state.
+- `CONTEXT.md`: fill in "What we're building" (one sentence), add key decisions (one line each, link to ADR if one exists), set current phase to `spec`, clear "Load this session" (that's for implement/review sessions).
+- `INDEX.md`: fill in "What we're building", update status to `spec`.
 
-**ADR-NNN.md** — one file per architectural decision that has lasting consequences (tech choice, schema shape, API contract, integration approach). Only write ADRs for decisions the team will need to remember in 6 months.
+Tell it never to run `git commit`/`git push`, and to report back one line confirming what was written.
 
-### 5. Update plan files
+Wait for the subagent to finish before proceeding.
 
-Update `PROGRESS.md` first:
-- Mark `grill` as complete with timestamp
-- Set current phase to `spec`
-- Write last session end-state
-
-Then update `CONTEXT.md`:
-- Fill in "What we're building" (one sentence)
-- Add key decisions (one line each, link to ADR if one exists)
-- Set current phase to `spec`
-- Clear "Load this session" — that's for implement/review sessions
-
-Update `INDEX.md`:
-- Fill in "What we're building"
-- Update status to `spec`
-
-### 6. Hand off
+### 5. Hand off
 
 Tell the user: "Grill complete. Start a new session and run `/dev-workflow` to continue with the spec phase." Mention they can also ask to run everything from here on autonomously (spec, tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list and review-round checkpoints.

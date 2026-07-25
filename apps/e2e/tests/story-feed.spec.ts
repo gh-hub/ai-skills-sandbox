@@ -56,7 +56,7 @@ test("submitting a story makes it appear in the feed, and a plain like with no s
 
   // A plain like (no story) should not add anything to the story feed.
   await page.getByRole("button", { name: "Like" }).click();
-  await expect(page.getByText(/\d+ likes/)).toBeVisible();
+  await expect(page.getByText(/^\d+ likes$/)).toBeVisible();
 
   const afterLike = await getFeedPage(page, 1);
   expect(afterLike.total).toBe(afterStory.total);

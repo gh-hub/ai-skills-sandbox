@@ -6,7 +6,7 @@ import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers
 import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import request from "supertest";
-import type { DbClient } from "../db/db.module";
+import type { DbClient } from "../../db/db.module";
 
 describe("Likes", () => {
   let container: StartedPostgreSqlContainer;
@@ -20,11 +20,11 @@ describe("Likes", () => {
 
     migrationPool = new Pool({ connectionString: process.env.DATABASE_URL });
     await migrate(drizzle(migrationPool), {
-      migrationsFolder: path.join(__dirname, "../../drizzle"),
+      migrationsFolder: path.join(__dirname, "../../../drizzle"),
     });
 
-    const { AppModule } = await import("../app.module");
-    const { DATABASE_CONNECTION } = await import("../db/db.module");
+    const { AppModule } = await import("../../app.module");
+    const { DATABASE_CONNECTION } = await import("../../db/db.module");
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
     appPool = moduleRef.get<DbClient>(DATABASE_CONNECTION).$client;
