@@ -15,6 +15,9 @@ import {
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { SparkMark } from "@/components/spark-mark";
+import { StatsBand } from "@/components/stats-band";
+import { StoryFeed } from "@/components/story-feed";
 import { useLikeCount, useSubmitLike } from "@/lib/api-client/likes";
 
 const storyFormSchema = z.object({
@@ -79,62 +82,109 @@ export default function Home() {
   };
 
   return (
-    <main>
-      <h1>Thanks, Claude</h1>
+    <div className="flex min-h-screen flex-col">
+      <main className="flex-1">
+        <section className="mx-auto flex max-w-2xl flex-col items-center gap-6 px-6 py-20 text-center sm:py-28">
+          <SparkMark size={48} />
 
-      {likeSubmit.isError && (
-        <p role="alert">Couldn't submit your like. Please try again.</p>
-      )}
+          <h1 className="text-4xl font-semibold tracking-tight text-balance sm:text-5xl">
+            Thanks, Claude
+          </h1>
 
-      <p>
-        <Button onClick={() => likeSubmit.mutate({})} disabled={likeSubmit.isPending}>
-          Like
-        </Button>{" "}
-        {renderLikeCount(likeCount)}
-      </p>
+          <p className="max-w-md text-balance text-muted-foreground">
+            A small way to say thank you — and to see how much time Claude
+            has given back to people like you.
+          </p>
 
-      <Button onClick={() => setIsExpanded((prev) => !prev)}>
-        {isExpanded ? "Hide story" : "Share a story"}
-      </Button>
+          {likeSubmit.isError && (
+            <p role="alert" className="text-sm text-destructive">
+              Couldn&apos;t submit your like. Please try again.
+            </p>
+          )}
 
-      {isExpanded && (
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(handleStorySubmit)}>
-            {storySubmit.isError && (
-              <p role="alert">Couldn't submit your story. Please try again.</p>
-            )}
-            <FormField
-              control={form.control}
-              name="story"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Story (optional)</FormLabel>
-                  <FormControl>
-                    <Textarea {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <FormField
-              control={form.control}
-              name="hoursSaved"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Hours saved (optional)</FormLabel>
-                  <FormControl>
-                    <Input type="number" {...field} />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
-            <Button type="submit" disabled={storySubmit.isPending}>
-              Submit
+          <div className="flex items-center gap-3">
+            <Button
+              onClick={() => likeSubmit.mutate({})}
+              disabled={likeSubmit.isPending}
+              size="lg"
+            >
+              Like
             </Button>
-          </form>
-        </Form>
-      )}
-    </main>
+            <span className="text-sm text-muted-foreground">
+              {renderLikeCount(likeCount)}
+            </span>
+          </div>
+
+          <div className="w-full max-w-md">
+            <Button
+              onClick={() => setIsExpanded((prev) => !prev)}
+              variant="outline"
+            >
+              {isExpanded ? "Hide story" : "Share a story"}
+            </Button>
+
+            {isExpanded && (
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(handleStorySubmit)}
+                  className="mt-4 flex flex-col gap-4 rounded-lg border border-border bg-card p-6 text-left shadow-xs"
+                >
+                  {storySubmit.isError && (
+                    <p role="alert" className="text-sm text-destructive">
+                      Couldn&apos;t submit your story. Please try again.
+                    </p>
+                  )}
+                  <FormField
+                    control={form.control}
+                    name="story"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Story (optional)</FormLabel>
+                        <FormControl>
+                          <Textarea {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="hoursSaved"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Hours saved (optional)</FormLabel>
+                        <FormControl>
+                          <Input type="number" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit" disabled={storySubmit.isPending}>
+                    Submit
+                  </Button>
+                </form>
+              </Form>
+            )}
+          </div>
+        </section>
+
+        <div
+          id="stats-and-feed"
+          className="mx-auto flex max-w-4xl flex-col gap-16 px-6 pb-20"
+        >
+          <StatsBand />
+          <StoryFeed />
+        </div>
+      </main>
+
+      <footer className="border-t border-border bg-card/50 py-10">
+        <div className="mx-auto flex max-w-4xl flex-col items-center gap-3 px-6 text-center text-sm text-muted-foreground">
+          <SparkMark size={20} />
+          <p>Thanks, Claude — an independent appreciation project.</p>
+          <p>Not affiliated with or endorsed by Anthropic.</p>
+        </div>
+      </footer>
+    </div>
   );
 }

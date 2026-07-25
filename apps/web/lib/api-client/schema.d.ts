@@ -27,7 +27,7 @@ export interface paths {
             path?: never;
             cookie?: never;
         };
-        get?: never;
+        get: operations["LikesController_getPage"];
         put?: never;
         post: operations["LikesController_create"];
         delete?: never;
@@ -44,6 +44,22 @@ export interface paths {
             cookie?: never;
         };
         get: operations["LikesController_getCount"];
+        put?: never;
+        post?: never;
+        delete?: never;
+        options?: never;
+        head?: never;
+        patch?: never;
+        trace?: never;
+    };
+    "/likes/stats": {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        get: operations["LikesController_getStats"];
         put?: never;
         post?: never;
         delete?: never;
@@ -69,6 +85,21 @@ export interface components {
         LikeCountDto: {
             count: number;
         };
+        LikesStatsDto: {
+            totalLikes: number;
+            likesWithHoursReported: number;
+            reportedHoursSaved: number;
+            percentWithoutHoursReported: number;
+            averageHoursPerReport: number;
+            estimatedTotalHoursSaved: number;
+        };
+        LikesPageDto: {
+            items: components["schemas"]["LikeDto"][];
+            total: number;
+            page: number;
+            limit: number;
+            totalPages: number;
+        };
     };
     responses: never;
     parameters: never;
@@ -92,6 +123,28 @@ export interface operations {
                     [name: string]: unknown;
                 };
                 content?: never;
+            };
+        };
+    };
+    LikesController_getPage: {
+        parameters: {
+            query?: {
+                page?: number;
+                limit?: number;
+            };
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LikesPageDto"];
+                };
             };
         };
     };
@@ -133,6 +186,25 @@ export interface operations {
                 };
                 content: {
                     "application/json": components["schemas"]["LikeCountDto"];
+                };
+            };
+        };
+    };
+    LikesController_getStats: {
+        parameters: {
+            query?: never;
+            header?: never;
+            path?: never;
+            cookie?: never;
+        };
+        requestBody?: never;
+        responses: {
+            200: {
+                headers: {
+                    [name: string]: unknown;
+                };
+                content: {
+                    "application/json": components["schemas"]["LikesStatsDto"];
                 };
             };
         };

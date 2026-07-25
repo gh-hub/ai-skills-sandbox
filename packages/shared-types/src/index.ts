@@ -17,3 +17,20 @@ export type Like = {
 export type LikeCount = {
   count: number;
 };
+
+export type LikesPage = {
+  items: Like[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type LikesStats = {
+  totalLikes: number;
+  likesWithHoursReported: number;
+  reportedHoursSaved: number;
+  percentWithoutHoursReported: number;
+  averageHoursPerReport: number;
+  estimatedTotalHoursSaved: number;
+};

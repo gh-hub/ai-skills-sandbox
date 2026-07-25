@@ -44,6 +44,47 @@
         "tags": [
           "Likes"
         ]
+      },
+      "get": {
+        "operationId": "LikesController_getPage",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 10,
+              "type": "number"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikesPageDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Likes"
+        ]
       }
     },
     "/likes/count": {
@@ -57,6 +98,27 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/LikeCountDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Likes"
+        ]
+      }
+    },
+    "/likes/stats": {
+      "get": {
+        "operationId": "LikesController_getStats",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/LikesStatsDto"
                 }
               }
             }
@@ -123,6 +185,67 @@
         },
         "required": [
           "count"
+        ]
+      },
+      "LikesStatsDto": {
+        "type": "object",
+        "properties": {
+          "totalLikes": {
+            "type": "number"
+          },
+          "likesWithHoursReported": {
+            "type": "number"
+          },
+          "reportedHoursSaved": {
+            "type": "number"
+          },
+          "percentWithoutHoursReported": {
+            "type": "number"
+          },
+          "averageHoursPerReport": {
+            "type": "number"
+          },
+          "estimatedTotalHoursSaved": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "totalLikes",
+          "likesWithHoursReported",
+          "reportedHoursSaved",
+          "percentWithoutHoursReported",
+          "averageHoursPerReport",
+          "estimatedTotalHoursSaved"
+        ]
+      },
+      "LikesPageDto": {
+        "type": "object",
+        "properties": {
+          "items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/LikeDto"
+            }
+          },
+          "total": {
+            "type": "number"
+          },
+          "page": {
+            "type": "number"
+          },
+          "limit": {
+            "type": "number"
+          },
+          "totalPages": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "items",
+          "total",
+          "page",
+          "limit",
+          "totalPages"
         ]
       }
     }

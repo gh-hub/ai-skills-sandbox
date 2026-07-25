@@ -4,7 +4,7 @@
 A paginated, public feed of user-shared stories with honest hours-saved stats (reported + estimated), plus a full claude.com-inspired visual redesign of the "Thanks, Claude" landing page.
 
 ## Status
-Current phase: implement
+Current phase: review-pending-decision
 
 ## Links
 - [PROGRESS.md](PROGRESS.md)
@@ -13,5 +13,6 @@ Current phase: implement
 - [Spec](spec.md)
 - [Tickets](tickets/)
 - [Review](review/)
-- [Tech debt](review/tech-debt.md)
+- [Round 1 report](review/round-1/report.md)
+- [Round 2 report](review/round-2/report.md)
 - [Tech debt](review/tech-debt.md)
