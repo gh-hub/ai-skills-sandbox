@@ -21,11 +21,13 @@ import { StatsBand } from "@/components/stats-band";
 import { StoryFeed } from "@/components/story-feed";
 import { UserAvatar } from "@/components/user-avatar";
 import { useLogout, useMe } from "@/lib/api-client/auth";
+import { useAwards } from "@/lib/api-client/awards";
 import {
   useLikeCount,
   useLikesStats,
   useSubmitLike,
 } from "@/lib/api-client/likes";
+import { getAwardIcon } from "@/lib/utils";
 
 const storyFormSchema = z.object({
   story: z.string().optional(),
@@ -35,6 +37,7 @@ const storyFormSchema = z.object({
     .refine((value) => !value || value.trim() === "" || Number(value) >= 0, {
       message: "Hours saved must be zero or greater",
     }),
+  awardIds: z.array(z.string()).optional(),
 });
 
 type StoryFormValues = z.infer<typeof storyFormSchema>;
@@ -85,6 +88,63 @@ function HeaderAuthControl() {
   );
 }
 
+function toggleAwardId(selectedIds: string[], awardId: string, isChecked: boolean): string[] {
+  return isChecked
+    ? [...selectedIds, awardId]
+    : selectedIds.filter((id) => id !== awardId);
+}
+
+function AwardCheckboxList({
+  selectedIds,
+  onChange,
+}: {
+  selectedIds: string[];
+  onChange: (ids: string[]) => void;
+}) {
+  const awards = useAwards();
+
+  if (awards.isError) {
+    return (
+      <span role="alert" className="text-sm text-destructive">
+        Unable to load awards.{" "}
+        <Button onClick={() => awards.refetch()} variant="link" size="sm">
+          Retry
+        </Button>
+      </span>
+    );
+  }
+
+  if (awards.isLoading || awards.data === undefined) {
+    return <span className="text-sm text-muted-foreground">loading…</span>;
+  }
+
+  if (awards.data.length === 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex flex-col gap-2">
+      {awards.data.map((award) => (
+        <label
+          key={award.id}
+          className="flex items-center gap-2 text-sm text-foreground"
+        >
+          <input
+            type="checkbox"
+            checked={selectedIds.includes(award.id)}
+            onChange={(event) =>
+              onChange(toggleAwardId(selectedIds, award.id, event.target.checked))
+            }
+            className="size-4 rounded border-border"
+          />
+          <span aria-hidden="true">{getAwardIcon(award.icon)}</span>
+          <span>{award.title}</span>
+        </label>
+      ))}
+    </div>
+  );
+}
+
 function formatHeroStatNumber(value: number): string {
   return Number.isInteger(value) ? value.toString() : value.toFixed(1);
 }
@@ -125,7 +185,7 @@ export default function Home() {
 
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
-    defaultValues: { story: "", hoursSaved: "" },
+    defaultValues: { story: "", hoursSaved: "", awardIds: [] },
   });
 
   const handleStorySubmit = (values: StoryFormValues) => {
@@ -136,6 +196,7 @@ export default function Home() {
       {
         story: trimmedStory ? trimmedStory : undefined,
         hoursSaved: trimmedHours ? Number(trimmedHours) : undefined,
+        awardIds: values.awardIds && values.awardIds.length > 0 ? values.awardIds : undefined,
       },
       {
         onSuccess: () => {
@@ -275,6 +336,20 @@ export default function Home() {
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="awardIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Awards (optional)</FormLabel>
+                        <AwardCheckboxList
+                          selectedIds={field.value ?? []}
+                          onChange={field.onChange}
+                        />
                         <FormMessage />
                       </FormItem>
                     )}

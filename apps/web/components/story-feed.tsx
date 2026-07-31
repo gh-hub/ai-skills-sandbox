@@ -5,9 +5,41 @@ import { UserRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
 import { useLikesFeed } from "@/lib/api-client/likes";
+import { getAwardIcon } from "@/lib/utils";
+
+type StoryAward = {
+  id: string;
+  title: string;
+  icon: string | null;
+};
 
 function formatHours(value: number): string {
   return Number.isInteger(value) ? value.toString() : value.toFixed(1);
+}
+
+function AwardBadge({ award }: { award: StoryAward }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-2 py-0.5 text-xs font-medium text-foreground">
+      <span aria-hidden="true">{getAwardIcon(award.icon)}</span>
+      <span>{award.title}</span>
+    </span>
+  );
+}
+
+function AwardBadgeList({ awards }: { awards: StoryAward[] }) {
+  if (awards.length === 0) {
+    return null;
+  }
+
+  return (
+    <ul className="flex flex-wrap gap-2" aria-label="Awards">
+      {awards.map((award) => (
+        <li key={award.id}>
+          <AwardBadge award={award} />
+        </li>
+      ))}
+    </ul>
+  );
 }
 
 function StoryByline({ attributedUserName }: { attributedUserName: string | null }) {
@@ -32,10 +64,12 @@ function StoryCard({
   story,
   hoursSaved,
   attributedUserName,
+  awards,
 }: {
   story: string;
   hoursSaved: number | null;
   attributedUserName: string | null;
+  awards: StoryAward[];
 }) {
   return (
     <li className="flex flex-col gap-2 rounded-lg border border-border bg-card p-6 text-left">
@@ -46,6 +80,7 @@ function StoryCard({
           {formatHours(hoursSaved)} hours saved
         </p>
       )}
+      <AwardBadgeList awards={awards} />
     </li>
   );
 }
@@ -161,6 +196,7 @@ export function StoryFeed() {
               story={item.story ?? ""}
               hoursSaved={item.hoursSaved}
               attributedUserName={item.attributedUserName}
+              awards={item.awards}
             />
           ))}
         </ul>

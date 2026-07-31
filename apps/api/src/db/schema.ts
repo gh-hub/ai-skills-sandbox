@@ -15,3 +15,21 @@ export const likes = pgTable("likes", {
   hoursSaved: numeric("hours_saved", { mode: "number" }),
   userId: uuid("user_id").references(() => users.id),
 });
+
+export const awards = pgTable("awards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  title: text("title").notNull(),
+  description: text("description").notNull(),
+  icon: text("icon"),
+});
+
+export const likeAwards = pgTable("like_awards", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  likeId: uuid("like_id")
+    .notNull()
+    .references(() => likes.id, { onDelete: "cascade" }),
+  awardId: uuid("award_id")
+    .notNull()
+    .references(() => awards.id, { onDelete: "cascade" }),
+});

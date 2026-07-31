@@ -1,7 +1,7 @@
 import { Inject, Injectable } from "@nestjs/common";
-import { and, count, desc, eq, isNotNull, ne, sum } from "drizzle-orm";
+import { and, count, desc, eq, inArray, isNotNull, ne, sum } from "drizzle-orm";
 import { DATABASE_CONNECTION, type DbClient } from "../../db/db.module";
-import { likes, users } from "../../db/schema";
+import { awards, likeAwards, likes, users } from "../../db/schema";
 
 export type LikeRow = typeof likes.$inferSelect;
 
@@ -25,13 +25,69 @@ export type LikesStatsAggregateRow = {
   reportedHoursSaved: string | null;
 };
 
+export type AwardSummaryRow = {
+  id: string;
+  title: string;
+  icon: string | null;
+};
+
+export type LikeAwardRow = AwardSummaryRow & {
+  likeId: string;
+};
+
+export type InsertLikeWithAwardsResult =
+  | { success: true; like: LikeRow; awards: AwardSummaryRow[] }
+  | { success: false; missingAwardIds: string[] };
+
 @Injectable()
 export class LikesRepository {
   constructor(@Inject(DATABASE_CONNECTION) private readonly db: DbClient) {}
 
-  async insertLike(values: NewLikeValues): Promise<LikeRow> {
-    const [like] = await this.db.insert(likes).values(values).returning();
-    return like;
+  async insertLikeWithAwards(
+    values: NewLikeValues,
+    awardIds: string[],
+  ): Promise<InsertLikeWithAwardsResult> {
+    return this.db.transaction(async (tx) => {
+      if (awardIds.length === 0) {
+        const [like] = await tx.insert(likes).values(values).returning();
+        return { success: true, like, awards: [] };
+      }
+
+      const foundAwards = await tx
+        .select({ id: awards.id, title: awards.title, icon: awards.icon })
+        .from(awards)
+        .where(inArray(awards.id, awardIds));
+
+      const foundAwardIds = new Set(foundAwards.map((award) => award.id));
+      const missingAwardIds = awardIds.filter((awardId) => !foundAwardIds.has(awardId));
+      if (missingAwardIds.length > 0) {
+        return { success: false, missingAwardIds };
+      }
+
+      const [like] = await tx.insert(likes).values(values).returning();
+      await tx
+        .insert(likeAwards)
+        .values(awardIds.map((awardId) => ({ likeId: like.id, awardId })));
+
+      return { success: true, like, awards: foundAwards };
+    });
+  }
+
+  async getAwardsForLikeIds(likeIds: string[]): Promise<LikeAwardRow[]> {
+    if (likeIds.length === 0) {
+      return [];
+    }
+
+    return this.db
+      .select({
+        likeId: likeAwards.likeId,
+        id: awards.id,
+        title: awards.title,
+        icon: awards.icon,
+      })
+      .from(likeAwards)
+      .innerJoin(awards, eq(likeAwards.awardId, awards.id))
+      .where(inArray(likeAwards.likeId, likeIds));
   }
 
   async countAll(): Promise<number> {

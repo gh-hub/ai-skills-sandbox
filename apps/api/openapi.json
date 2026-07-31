@@ -225,6 +225,148 @@
           "Auth"
         ]
       }
+    },
+    "/awards": {
+      "get": {
+        "operationId": "AwardsController_getAll",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AwardDto"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Awards"
+        ]
+      },
+      "post": {
+        "operationId": "AwardsController_create",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAwardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwardDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Awards"
+        ]
+      }
+    },
+    "/awards/{id}": {
+      "get": {
+        "operationId": "AwardsController_getById",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwardDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Awards"
+        ]
+      },
+      "patch": {
+        "operationId": "AwardsController_update",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateAwardDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AwardDto"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Awards"
+        ]
+      },
+      "delete": {
+        "operationId": "AwardsController_remove",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Awards"
+        ]
+      }
     }
   },
   "info": {
@@ -245,8 +387,34 @@
           },
           "hoursSaved": {
             "type": "number"
+          },
+          "awardIds": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         }
+      },
+      "AwardSummaryDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "required": [
+          "id",
+          "title",
+          "icon"
+        ]
       },
       "LikeDto": {
         "type": "object",
@@ -264,13 +432,20 @@
           "hoursSaved": {
             "type": "number",
             "nullable": true
+          },
+          "awards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AwardSummaryDto"
+            }
           }
         },
         "required": [
           "id",
           "createdAt",
           "story",
-          "hoursSaved"
+          "hoursSaved",
+          "awards"
         ]
       },
       "LikeCountDto": {
@@ -332,6 +507,12 @@
             "type": "number",
             "nullable": true
           },
+          "awards": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AwardSummaryDto"
+            }
+          },
           "attributedUserName": {
             "type": "string",
             "nullable": true
@@ -342,6 +523,7 @@
           "createdAt",
           "story",
           "hoursSaved",
+          "awards",
           "attributedUserName"
         ]
       },
@@ -445,6 +627,70 @@
         "required": [
           "user"
         ]
+      },
+      "AwardDto": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string"
+          },
+          "createdAt": {
+            "type": "string"
+          },
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string",
+            "nullable": true
+          },
+          "givenCount": {
+            "type": "number"
+          }
+        },
+        "required": [
+          "id",
+          "createdAt",
+          "title",
+          "description",
+          "icon",
+          "givenCount"
+        ]
+      },
+      "CreateAwardDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "title",
+          "description"
+        ]
+      },
+      "UpdateAwardDto": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "description": {
+            "type": "string"
+          },
+          "icon": {
+            "type": "string"
+          }
+        }
       }
     }
   }

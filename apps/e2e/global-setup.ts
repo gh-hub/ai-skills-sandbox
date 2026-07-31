@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { wasAlreadyRunning } from "./playwright.config";
+import { COMPOSE_ARGS, COMPOSE_ENV, POSTGRES_DB, POSTGRES_USER } from "./e2e.config";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const MAX_ATTEMPTS = 30;
@@ -14,19 +15,19 @@ function truncateLikesTable(): void {
   execFileSync(
     "docker",
     [
-      "compose",
+      ...COMPOSE_ARGS,
       "exec",
       "-T",
       "postgres",
       "psql",
       "-U",
-      "thanks_claude",
+      POSTGRES_USER,
       "-d",
-      "thanks_claude",
+      POSTGRES_DB,
       "-c",
-      "TRUNCATE TABLE likes;",
+      "TRUNCATE TABLE likes CASCADE;",
     ],
-    { cwd: REPO_ROOT, stdio: "pipe" }
+    { cwd: REPO_ROOT, env: COMPOSE_ENV, stdio: "pipe" }
   );
 }
 
@@ -49,6 +50,6 @@ export default async function globalSetup(): Promise<() => Promise<void>> {
     if (wasAlreadyRunning) {
       return;
     }
-    execFileSync("docker", ["compose", "down"], { cwd: REPO_ROOT, stdio: "pipe" });
+    execFileSync("docker", [...COMPOSE_ARGS, "down"], { cwd: REPO_ROOT, env: COMPOSE_ENV, stdio: "pipe" });
   };
 }

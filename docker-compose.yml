@@ -2,15 +2,15 @@ services:
   postgres:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: thanks_claude
-      POSTGRES_PASSWORD: thanks_claude
-      POSTGRES_DB: thanks_claude
+      POSTGRES_USER: ${POSTGRES_USER:-thanks_claude}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-thanks_claude}
+      POSTGRES_DB: ${POSTGRES_DB:-thanks_claude}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5433}:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U thanks_claude"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-thanks_claude}"]
       interval: 2s
       timeout: 5s
       retries: 10
@@ -20,7 +20,7 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     environment:
-      DATABASE_URL: postgres://thanks_claude:thanks_claude@postgres:5432/thanks_claude
+      DATABASE_URL: postgres://${POSTGRES_USER:-thanks_claude}:${POSTGRES_PASSWORD:-thanks_claude}@postgres:5432/${POSTGRES_DB:-thanks_claude}
       PORT: 3000
       JWT_SECRET: dev-only-jwt-secret-change-me
     depends_on:
@@ -32,9 +32,30 @@ services:
       context: .
       dockerfile: apps/web/Dockerfile
     ports:
-      - "8080:80"
+      - "${WEB_PORT:-8081}:80"
     depends_on:
       - api
+
+  connection-info:
+    image: alpine:3.20
+    depends_on:
+      postgres:
+        condition: service_healthy
+      api:
+        condition: service_started
+      web:
+        condition: service_started
+    command:
+      - sh
+      - -c
+      - |
+        echo "=================================================="
+        echo " thanks-claude stack is up"
+        echo "=================================================="
+        echo " web:      http://localhost:${WEB_PORT:-8081}"
+        echo " api:      http://localhost:${WEB_PORT:-8081}/api/ (proxied via web; not published directly)"
+        echo " postgres: postgres://${POSTGRES_USER:-thanks_claude}:${POSTGRES_PASSWORD:-thanks_claude}@localhost:${POSTGRES_PORT:-5433}/${POSTGRES_DB:-thanks_claude}"
+        echo "=================================================="
 
 volumes:
   postgres-data:

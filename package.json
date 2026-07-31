@@ -2,6 +2,12 @@
   "name": "thanks-claude",
   "private": true,
   "packageManager": "pnpm@10.30.1",
+  "scripts": {
+    "docker:up": "docker compose up --build",
+    "docker:down": "docker compose down",
+    "docker:e2e:up": "docker compose --env-file apps/e2e/.env.e2e -p thanks-claude-e2e up --build",
+    "docker:e2e:down": "docker compose --env-file apps/e2e/.env.e2e -p thanks-claude-e2e down"
+  },
   "pnpm": {
     "onlyBuiltDependencies": ["esbuild", "sharp", "bcrypt"]
   }

@@ -1,6 +1,7 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
 import { defineConfig, devices } from "@playwright/test";
+import { COMPOSE_ARGS, COMPOSE_ENV, WEB_PORT } from "./e2e.config";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..");
 const isCI = Boolean(process.env.CI);
@@ -13,8 +14,8 @@ function isStackAlreadyRunning(): boolean {
   try {
     output = execFileSync(
       "docker",
-      ["compose", "ps", "--status", "running", "--format", "json"],
-      { cwd: REPO_ROOT, stdio: ["ignore", "pipe", "ignore"] }
+      [...COMPOSE_ARGS, "ps", "--status", "running", "--format", "json"],
+      { cwd: REPO_ROOT, env: COMPOSE_ENV, stdio: ["ignore", "pipe", "ignore"] }
     ).toString();
   } catch {
     return false;
@@ -43,12 +44,13 @@ export default defineConfig({
   workers: 1,
   globalSetup: require.resolve("./global-setup"),
   use: {
-    baseURL: "http://localhost:8080",
+    baseURL: `http://localhost:${WEB_PORT}`,
   },
   webServer: {
-    command: "docker compose up --build",
+    command: `docker ${COMPOSE_ARGS.join(" ")} up --build`,
     cwd: REPO_ROOT,
-    url: "http://localhost:8080",
+    env: COMPOSE_ENV,
+    url: `http://localhost:${WEB_PORT}`,
     reuseExistingServer: !isCI,
     timeout: 300_000,
   },
