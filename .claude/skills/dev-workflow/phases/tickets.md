@@ -83,6 +83,6 @@ Tell it never to run `git commit`/`git push`, and to report back one line confir
 
 Tell the user tickets are written and give them both ways to continue:
 - Manually, one ticket per session: "Start a new session and run `/dev-workflow` to begin implementing ticket 01."
-- Autonomously, across all remaining tickets and the review round: ask to run it that way — see "Auto mode" in `SKILL.md`. It still stops at the review-round decision checkpoint, and it never runs `git commit`/`git push` on its own.
+- Autonomously, across all remaining tickets and review: ask to run it that way — see "Auto mode" in `SKILL.md`. It still stops at any review checkpoint (pass, or round 3+ failure), and it never runs `git commit`/`git push` on its own.
 
 (This step doesn't apply under `--auto` — see "Auto mode" in `SKILL.md`, which replaces this whole hand-off with a one-line status instead.)

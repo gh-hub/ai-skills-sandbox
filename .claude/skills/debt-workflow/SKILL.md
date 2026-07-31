@@ -1,13 +1,13 @@
 ---
 name: debt-workflow
-description: Reviews the global tech-debt backlog at plans/tech-debt/ (populated by dev-workflow's review phase when a plan archives with open DEBT items). Checks each item for continued relevance, discards stale ones, and — for whatever remains — starts a new dev-workflow plan to fix it, using the surviving debt files as that plan's context. Run standalone via /debt-workflow.
+description: Reviews the global tech-debt backlog at plans/tech-debt/ (populated by codereview-workflow's review phase as DEBT findings are logged). Checks each item for continued relevance, discards stale ones, and — for whatever remains — starts a new dev-workflow plan to fix it, using the surviving debt files as that plan's context. Run standalone via /debt-workflow.
 ---
 
 # debt-workflow
 
 ## Ownership
 
-`dev-workflow` writes to `plans/tech-debt/` (its review phase's archive step) and never reads it back. This skill is the only reader: it decides what's still worth fixing, and starts the plan that fixes it. `dev-workflow` carries no reference to this skill and doesn't need to — the two connect only through the folder on disk.
+`codereview-workflow` writes to `plans/tech-debt/` (its review phase, as soon as a DEBT finding is logged) and never reads it back. This skill is the only reader: it decides what's still worth fixing, and starts the `dev-workflow` plan that fixes it. Neither `codereview-workflow` nor `dev-workflow` carries any reference to this skill — the three connect only through the folder on disk.
 
 ## Process
 

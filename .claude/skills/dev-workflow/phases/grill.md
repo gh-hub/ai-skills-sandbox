@@ -73,4 +73,4 @@ Wait for the subagent to finish before proceeding.
 
 ### 5. Hand off
 
-Tell the user: "Grill complete. Start a new session and run `/dev-workflow` to continue with the spec phase." Mention they can also ask to run everything from here on autonomously (spec, tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list and review-round checkpoints.
+Tell the user: "Grill complete. Start a new session and run `/dev-workflow` to continue with the spec phase." Mention they can also ask to run everything from here on autonomously (spec, tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).

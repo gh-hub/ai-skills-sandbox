@@ -79,4 +79,4 @@ Open questions, risks, or things to revisit.
 
 ### 3. Hand off
 
-Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list and review-round checkpoints.
+Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).

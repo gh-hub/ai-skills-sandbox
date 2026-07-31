@@ -7,14 +7,16 @@ Canonical definition of every file and folder inside a plan.
 ```
 plans/
   coding-rules/          ← optional, project-specific rules only; not auto-created
-  tech-debt/              ← global backlog, one file per open DEBT item, written by the review-decide phase's archive step
+  tech-debt/              ← global backlog, one file per open DEBT item; written by the separate codereview-workflow skill, not by dev-workflow
     YYYYMMDD_HHMMSS-{slug}.md
-  done/                  ← completed plans, moved here by the review-decide phase
+  done/                  ← completed plans, moved here once review passes and the user confirms "done"
     YYYYMMDD_HHMMSS-{name}/
   YYYYMMDD_HHMMSS-{name}/  ← in-progress plans (only these show here)
 ```
 
-Plans in `plans/` root are in-progress. When review marks a plan complete it moves to `plans/done/`. `coding-rules/` (if it exists) and `tech-debt/` stay at the root always.
+Plans in `plans/` root are in-progress. When review passes and the user confirms, the plan moves to `plans/done/`. `coding-rules/` (if it exists) and `tech-debt/` stay at the root always. `tech-debt/` is dev-workflow's neighbor, not its output — see the `codereview-workflow` skill for how it's populated, and `debt-workflow` for how it's triaged.
+
+Not every plan here was created by dev-workflow's own `grill` phase. `codereview-workflow`'s `decide` phase can seed a plan directly at the `implement` phase — grill/spec/tickets marked skipped in `PROGRESS.md`, `spec.md` framed as the review's findings, one ticket per BLOCK finding. Such a plan looks and resumes exactly like any other in-progress plan; there's nothing dev-workflow needs to do differently.
 
 ## Plan folder name
 
@@ -44,7 +46,6 @@ Current phase: grill
 - [Spec](spec.md)
 - [Tickets](tickets/)
 - [Review](review/)
-- [Tech debt](review/tech-debt.md)
 ```
 
 ---
@@ -112,8 +113,7 @@ grill
 - [ ] tickets
 - [ ] implement/01-{slug}
 - [ ] implement/02-{slug}
-- [ ] review/round-1/tickets
-- [ ] review/round-1/decide
+- [ ] review/round-1
 
 ## Review rounds
 (none yet)
@@ -122,7 +122,7 @@ grill
 What was done, what comes next — written at end of each session.
 ```
 
-`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review-decide.md whenever a new ticket becomes current; cleared when all tickets are done.
+`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
 
 ---
 
@@ -163,59 +163,23 @@ Numbered from 01 in dependency order (blockers first).
 
 ### review/
 
-One subfolder per review round. `report.md`, `tickets/`, and the `tech-debt.md` appends are written by `phases/review-tickets.md`; the round's fix/accept/escalate/stop decision is recorded by `phases/review-decide.md`.
+One subfolder per review round, written by `phases/review.md` — a pass/fail gate, not a severity-tagged review. That fuller review (standards, code smells) lives in the separate `codereview-workflow` skill and is not tied to a plan's folder structure at all.
 
 ```
 review/
-  tech-debt.md       ← DEBT findings accumulated across all rounds (appended, never deleted)
   round-1/
-    report.md        ← full review output with severity tags
-    tickets/         ← BLOCK findings as new tickets (if any)
+    findings.md      ← spec-match gaps + lint/build/test/e2e output (only written on failure)
+    tickets/          ← one fix ticket per finding (only written on failure)
       01-{slug}.md
   round-2/
     ...
 ```
 
-Findings are tagged:
-- `BLOCK` — must fix before shipping
-- `DEBT` — real problem, logged to tech-debt.md, not a blocker
+Round `N` **fails** when the diff doesn't fully satisfy `spec.md`, or lint, build, the unit/integration suite, or the e2e suite don't pass. On failure, `findings.md` and fix tickets are written; for rounds 1-2 the plan loops straight back to `implement` with no user checkpoint (this is an objective gate, not a judgment call). Round 3+ failures stop and ask the user to `continue` (round `N+1`) or `stop` (leave the plan in-progress).
 
-After round 2, any remaining BLOCKs are flagged to the user. The user decides: fix (round 3), accept as debt, or escalate. The loop does not continue silently.
-
-A `DEBT` item that gets fixed out-of-band (not through the formal ticket flow) is marked in place as `[FIXED, {date}]` — it stays in `tech-debt.md` as history, it is not deleted.
-
-When the plan archives (`done`/`accept`), every remaining `[DEBT]` line (not `[FIXED, ...]`) is exported to `plans/tech-debt/` as its own file, and the line here is annotated ` — moved to plans/tech-debt/{filename}`. See `plans/tech-debt/` below.
+Round `N` **passes** when the diff satisfies `spec.md` and lint, build, unit/integration tests, and e2e tests (whichever of these exist in the project) are all green — no `findings.md`/`tickets/` are written for a passing round. The user then confirms `done` to archive the plan.
 
 ---
-
-## plans/tech-debt/
-
-Lives at the project root (not inside a plan folder), populated only by the review-decide phase's archive step (`phases/review-decide.md`, step 4) — one file per DEBT item still open when its plan archived.
-
-```
-tech-debt/
-  YYYYMMDD_HHMMSS-{slug}.md
-  YYYYMMDD_HHMMSS-{slug}.md
-  ...
-```
-
-Timestamp is when the item was exported (archive time), not when it was originally found. File contents:
-
-```markdown
-# {slug}
-
-## Finding
-{the DEBT finding, verbatim}
-
-## Source
-- Plan: plans/done/{plan-folder}/
-- Round: round-{N}
-- Category: Standards / Spec
-- Logged: {original date found}
-- Moved: {archive date}
-```
-
-dev-workflow only ever writes here — it does not read this folder, evaluate any file in it, or decide what happens to it next. That judgment (is this still relevant, is it worth fixing, should it become a plan) is out of scope for dev-workflow entirely.
 
 ---
 
