@@ -13,7 +13,7 @@ Break the spec into tracer-bullet tickets — vertical slices, each independentl
 
 ### 1. Load context
 
-Read `PROGRESS.md` first. Confirm the current phase is `tickets`. If PROGRESS.md says a different phase, stop and tell the user — do not proceed.
+Read `PROGRESS/INDEX.md` first. Confirm the current phase is `tickets`. If PROGRESS/INDEX.md says a different phase, stop and tell the user — do not proceed.
 
 Read:
 - `plans/{folder}/CONTEXT.md`
@@ -73,7 +73,8 @@ No file paths or code snippets unless a prototype produced a snippet that encode
 
 Then update the plan files:
 
-- `PROGRESS.md`: mark `tickets` complete with timestamp, add one `implement/{NN}-{slug}` line per ticket (all unchecked), set current phase to `implement/01-{slug}`, set `Current ticket path` to `plans/{folder}/tickets/01-{slug}.md`, write last session end-state.
+- `PROGRESS/INDEX.md`: mark `tickets` `done` with today's date in the Phases table, add one `implement/{NN}-{slug}` row per ticket (status `pending`), set current phase to `implement/01-{slug}`, set `Current ticket path` to `plans/{folder}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/tickets.md`.
+- `PROGRESS/notes/tickets.md`: the session end-state (ticket breakdown summary, what's next).
 - `CONTEXT.md`: add list of tickets with their numbers and slugs, set current phase to `implement`, set current ticket to `plans/{folder}/tickets/01-{slug}.md` (full path).
 - `INDEX.md`: add link to tickets/, update status to `implement`.
 

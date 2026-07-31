@@ -86,7 +86,7 @@ Create `plans/{timestamp}-codereview-{branch-slug}/` (timestamp from `date +%Y%m
    Current phase: implement/01-{slug}
 
    ## Links
-   - [PROGRESS.md](PROGRESS.md)
+   - [PROGRESS/](PROGRESS/INDEX.md)
    - [CONTEXT.md](CONTEXT.md)
    - [Spec](spec.md) (seeded from code review, not hand-written)
    - [Tickets](tickets/)
@@ -115,7 +115,7 @@ Create `plans/{timestamp}-codereview-{branch-slug}/` (timestamp from `date +%Y%m
    - This plan has no grill/ or a hand-written spec.md — spec.md exists but only lists the findings as requirements, for dev-workflow's review-phase spec-match check.
    - Every ticket must not change business logic — that's an acceptance criterion on all of them, not just a suggestion.
    ```
-5. `PROGRESS.md`:
+5. `PROGRESS/INDEX.md` (plus `PROGRESS/notes/seed.md`, per dev-workflow's `plan-structure.md`):
    ```markdown
    # Progress: Code review fixes — {branch name}
 
@@ -126,20 +126,20 @@ Create `plans/{timestamp}-codereview-{branch-slug}/` (timestamp from `date +%Y%m
    plans/{folder}/tickets/01-{slug}.md
 
    ## Phases
-   - [x] grill (skipped — seeded by codereview-workflow)
-   - [x] spec (skipped — seeded by codereview-workflow)
-   - [x] tickets (skipped — seeded by codereview-workflow)
-   - [ ] implement/01-{slug}
-   - [ ] implement/02-{slug}
-   ...
-   - [ ] review/round-1
-
-   ## Review rounds
-   (none yet)
+   | Phase | Status | Date | Notes |
+   |---|---|---|---|
+   | grill | skipped — seeded by codereview-workflow | | |
+   | spec | skipped — seeded by codereview-workflow | | |
+   | tickets | skipped — seeded by codereview-workflow | | |
+   | implement/01-{slug} | pending | | |
+   | implement/02-{slug} | pending | | |
+   ... | | | |
+   | review/round-1 | pending | | |
 
    ## Last session end-state
-   Seeded from a codereview-workflow pass at `.codereview/{folder}`. Ready to implement ticket 01.
+   See [notes/seed.md](notes/seed.md).
    ```
+   `PROGRESS/notes/seed.md`: "Seeded from a codereview-workflow pass at `.codereview/{folder}`. Ready to implement ticket 01."
 
 Then update the codereview folder's own `STATE.md`: set current phase to `handed-off`, record the created plan's path, update "Last session end-state".
 

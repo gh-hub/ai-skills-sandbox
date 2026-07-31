@@ -60,7 +60,7 @@ Exactly one — `decide`: see the summary and choose fix (hand off to `dev-workf
 
 ## Source of truth
 
-`STATE.md` is always the source of truth for phase state, the same role `PROGRESS.md` plays for a `dev-workflow` plan.
+`STATE.md` is always the source of truth for phase state, the same role `PROGRESS/INDEX.md` plays for a `dev-workflow` plan.
 
 ## Coding rules
 

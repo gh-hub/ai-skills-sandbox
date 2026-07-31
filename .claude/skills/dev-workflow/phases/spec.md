@@ -13,7 +13,7 @@ Turn the grill output into a structured spec. No interview — synthesize what t
 
 ### 1. Load context
 
-Read `PROGRESS.md` first. Confirm the current phase is `spec`. If PROGRESS.md says a different phase, stop and tell the user — do not proceed.
+Read `PROGRESS/INDEX.md` first. Confirm the current phase is `spec`. If PROGRESS/INDEX.md says a different phase, stop and tell the user — do not proceed.
 
 ### 2. Delegate synthesis and write-up
 
@@ -25,7 +25,7 @@ Whoever does the work (you or the sub-agent) should:
 2. Explore the codebase (if one exists) to understand the current state of the area being changed. Use the domain glossary vocabulary throughout the spec.
 3. Identify test seams: sketch the seams at which the feature will be tested. Prefer existing seams. Use the highest seam possible. Propose new seams only if no existing one fits, and at the highest point available.
 4. Write the spec to `plans/{folder}/spec.md` using the template below.
-5. Update `PROGRESS.md` first: mark `spec` complete with timestamp, set current phase to `tickets`, write last session end-state. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
+5. Update `PROGRESS/INDEX.md` first: mark `spec` `done` with today's date in the Phases table, set current phase to `tickets`, point "Last session end-state" at `notes/spec.md`. Write `PROGRESS/notes/spec.md` with the session end-state. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
 
 If delegating, give the sub-agent the plan folder path and these instructions verbatim, plus: never run `git commit`/`git push`, never ask the user anything, and report back one line confirming what was written. Wait for it to finish before proceeding.
 

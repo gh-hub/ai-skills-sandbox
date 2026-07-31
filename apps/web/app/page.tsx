@@ -4,7 +4,8 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AuthModal } from "@/components/auth-modal";
+import { AwardCheckboxList } from "@/components/award-checkbox-list";
+import { HeaderAuthControl } from "@/components/header-auth-control";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,15 +20,11 @@ import { Textarea } from "@/components/ui/textarea";
 import { SparkMark } from "@/components/spark-mark";
 import { StatsBand } from "@/components/stats-band";
 import { StoryFeed } from "@/components/story-feed";
-import { UserAvatar } from "@/components/user-avatar";
-import { useLogout, useMe } from "@/lib/api-client/auth";
-import { useAwards } from "@/lib/api-client/awards";
 import {
   useLikeCount,
   useLikesStats,
   useSubmitLike,
 } from "@/lib/api-client/likes";
-import { getAwardIcon } from "@/lib/utils";
 
 const storyFormSchema = z.object({
   story: z.string().optional(),
@@ -59,90 +56,6 @@ function renderLikeCount(likeCount: ReturnType<typeof useLikeCount>) {
   }
 
   return `${likeCount.data} likes`;
-}
-
-function HeaderAuthControl() {
-  const me = useMe();
-  const logout = useLogout();
-
-  if (me.isLoading || me.data === undefined) {
-    return null;
-  }
-
-  if (me.data === null) {
-    return <AuthModal />;
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <UserAvatar name={me.data.name} size="sm" />
-      <Button
-        onClick={() => logout.mutate()}
-        disabled={logout.isPending}
-        variant="ghost"
-        size="sm"
-      >
-        Log out
-      </Button>
-    </div>
-  );
-}
-
-function toggleAwardId(selectedIds: string[], awardId: string, isChecked: boolean): string[] {
-  return isChecked
-    ? [...selectedIds, awardId]
-    : selectedIds.filter((id) => id !== awardId);
-}
-
-function AwardCheckboxList({
-  selectedIds,
-  onChange,
-}: {
-  selectedIds: string[];
-  onChange: (ids: string[]) => void;
-}) {
-  const awards = useAwards();
-
-  if (awards.isError) {
-    return (
-      <span role="alert" className="text-sm text-destructive">
-        Unable to load awards.{" "}
-        <Button onClick={() => awards.refetch()} variant="link" size="sm">
-          Retry
-        </Button>
-      </span>
-    );
-  }
-
-  if (awards.isLoading || awards.data === undefined) {
-    return <span className="text-sm text-muted-foreground">loading…</span>;
-  }
-
-  if (awards.data.length === 0) {
-    return null;
-  }
-
-  return (
-    <div className="flex flex-col gap-2">
-      {awards.data.map((award) => (
-        <label
-          key={award.id}
-          className="flex items-center gap-2 text-sm text-foreground"
-        >
-          <input
-            type="checkbox"
-            checked={selectedIds.includes(award.id)}
-            onChange={(event) =>
-              onChange(toggleAwardId(selectedIds, award.id, event.target.checked))
-            }
-            className="size-4 rounded border-border"
-          />
-          <span aria-hidden="true">{getAwardIcon(award.icon)}</span>
-          <span>{award.title}</span>
-        </label>
-      ))}
-    </div>
-  );
 }
 
 function formatHeroStatNumber(value: number): string {

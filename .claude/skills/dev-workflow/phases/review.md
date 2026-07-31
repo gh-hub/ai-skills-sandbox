@@ -13,7 +13,7 @@ Confirm two things about everything implemented so far: it does what `spec.md` s
 
 ### 1. Load context
 
-Read `plans/{folder}/PROGRESS.md` first — source of truth. Confirm the current phase is `review/round-{N}` (N=1 the first time a plan enters review). If it is not, stop and tell the user — do not proceed.
+Read `plans/{folder}/PROGRESS/INDEX.md` first — source of truth. Confirm the current phase is `review/round-{N}` (N=1 the first time a plan enters review). If it is not, stop and tell the user — do not proceed.
 
 Read `plans/{folder}/CONTEXT.md` and `plans/{folder}/spec.md`.
 
@@ -23,7 +23,7 @@ The diff is everything implemented since the tickets were started:
 ```
 git diff {base-branch}...HEAD
 ```
-If the base branch is unclear, read `PROGRESS.md` — it should record the branch state at ticket start. If still unclear, ask the user once and record the answer.
+If the base branch is unclear, read `PROGRESS/INDEX.md` — it should record the branch state at ticket start. If still unclear, ask the user once and record the answer.
 
 Confirm the diff is non-empty before spawning the sub-agent.
 
@@ -53,8 +53,9 @@ Delegate the write-up (per the Delegation discipline in `SKILL.md`, this phase a
 
 1. Write `plans/{folder}/review/round-{N}/findings.md` — the sub-agent's spec findings verbatim, plus a checklist of every step-4 check that ran (lint / build / unit-integration / e2e) with pass/fail and the failure output for any that failed.
 2. Write one fix ticket per finding to `plans/{folder}/review/round-{N}/tickets/`, numbered from `01`, same format as `phases/tickets.md`.
-3. Update `PROGRESS.md` first, then `CONTEXT.md` to match:
-   - `PROGRESS.md`: mark `review/round-{N}` with its findings summary and timestamp, set current phase to `implement`, set `Current ticket path` to `plans/{folder}/review/round-{N}/tickets/01-{slug}.md`.
+3. Update `PROGRESS/INDEX.md` first, then `CONTEXT.md` to match:
+   - `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `FAIL` with today's date in the Phases table, set current phase to `implement`, set `Current ticket path` to `plans/{folder}/review/round-{N}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/review-round-{N}.md`.
+   - `PROGRESS/notes/review-round-{N}.md`: the findings summary (one-line-per-check gate result plus the spec-match gaps), linking to `review/round-{N}/findings.md` for full detail.
    - `CONTEXT.md`: note round `{N}` failed (one line, link to `findings.md`), set current phase to `implement`, set current ticket to the same path.
    - `INDEX.md`: add link to `review/round-{N}/findings.md`, update status to `fixing`.
 
@@ -69,7 +70,7 @@ Review round {N} still failing after {N} rounds: {one-line summary of what's wro
 
 Reply with one of those two words.
 ```
-Record the decision in `PROGRESS.md`/`CONTEXT.md`. On "continue", proceed exactly as the N≤2 case above. On "stop", record `review paused at round {N} — left in-progress by user` in `PROGRESS.md` and stop; tell the user: "Review paused at round {N}. Plan remains at `plans/{folder}`. Run `/dev-workflow` to resume when ready."
+Record the decision in `PROGRESS/INDEX.md`/`CONTEXT.md`. On "continue", proceed exactly as the N≤2 case above. On "stop", record `review paused at round {N} — left in-progress by user` in `PROGRESS/INDEX.md`'s "Last session end-state" (and in `notes/review-round-{N}.md`) and stop; tell the user: "Review paused at round {N}. Plan remains at `plans/{folder}`. Run `/dev-workflow` to resume when ready."
 
 ### 6b. On PASS
 
@@ -81,10 +82,11 @@ Reply "done" to archive this plan.
 ```
 
 Once the user replies "done", delegate the write-up to a fresh `general-purpose` sub-agent:
-1. `PROGRESS.md`: mark `review/round-{N}` complete and the plan complete, both with timestamps.
-2. `CONTEXT.md`: add "Plan complete".
-3. `INDEX.md`: update status to `complete`.
-4. Create `plans/done/` if it doesn't exist, then move the plan folder to `plans/done/YYYYMMDD_HHMMSS-{name}/` (reuse the plan's original timestamp/name, not a new one).
+1. `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `PASS` with today's date, set current phase to `(complete)`, point "Last session end-state" at `notes/review-round-{N}.md`.
+2. `PROGRESS/notes/review-round-{N}.md`: confirm spec-match clean and the full gate green, with a one-line summary of what passed.
+3. `CONTEXT.md`: add "Plan complete".
+4. `INDEX.md`: update status to `complete`.
+5. Create `plans/done/` if it doesn't exist, then move the plan folder to `plans/done/YYYYMMDD_HHMMSS-{name}/` (reuse the plan's original timestamp/name, not a new one).
 
 Tell it never to run `git commit`/`git push`, never to talk to the user, and to report back one line confirming what was written and moved. Wait for it to finish before proceeding.
 

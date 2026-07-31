@@ -16,7 +16,7 @@ plans/
 
 Plans in `plans/` root are in-progress. When review passes and the user confirms, the plan moves to `plans/done/`. `coding-rules/` (if it exists) and `tech-debt/` stay at the root always. `tech-debt/` is dev-workflow's neighbor, not its output — see the `codereview-workflow` skill for how it's populated, and `debt-workflow` for how it's triaged.
 
-Not every plan here was created by dev-workflow's own `grill` phase. `codereview-workflow`'s `decide` phase can seed a plan directly at the `implement` phase — grill/spec/tickets marked skipped in `PROGRESS.md`, `spec.md` framed as the review's findings, one ticket per BLOCK finding. Such a plan looks and resumes exactly like any other in-progress plan; there's nothing dev-workflow needs to do differently.
+Not every plan here was created by dev-workflow's own `grill` phase. `codereview-workflow`'s `decide` phase can seed a plan directly at the `implement` phase — grill/spec/tickets marked skipped in `PROGRESS/INDEX.md`, `spec.md` framed as the review's findings, one ticket per BLOCK finding. Such a plan looks and resumes exactly like any other in-progress plan; there's nothing dev-workflow needs to do differently.
 
 ## Plan folder name
 
@@ -40,7 +40,7 @@ One sentence.
 Current phase: grill
 
 ## Links
-- [PROGRESS.md](PROGRESS.md)
+- [PROGRESS/](PROGRESS/INDEX.md)
 - [CONTEXT.md](CONTEXT.md)
 - [Grill output](grill/)
 - [Spec](spec.md)
@@ -94,9 +94,24 @@ Current ticket: {path or "none"}
 
 ---
 
-### PROGRESS.md
+### PROGRESS/
 
-Machine-readable state tracker. The orchestrator reads this to know where to resume.
+Machine-readable state tracker, as a folder rather than one file. The orchestrator reads `PROGRESS/INDEX.md` to know where to resume; the per-phase narrative that used to accumulate inline now lives one file per phase in `PROGRESS/notes/`, so `INDEX.md` stays a small, constant-size table no matter how many rounds/tickets a plan goes through.
+
+```
+PROGRESS/
+  INDEX.md
+  notes/
+    grill.md
+    spec.md
+    tickets.md
+    implement-01-{slug}.md
+    implement-02-{slug}.md
+    review-round-1.md
+    ...
+```
+
+#### INDEX.md
 
 ```markdown
 # Progress: {plan name}
@@ -108,21 +123,32 @@ grill
 (none — set to full file path when an implement phase starts)
 
 ## Phases
-- [ ] grill
-- [ ] spec
-- [ ] tickets
-- [ ] implement/01-{slug}
-- [ ] implement/02-{slug}
-- [ ] review/round-1
-
-## Review rounds
-(none yet)
+| Phase | Status | Date | Notes |
+|---|---|---|---|
+| grill | pending | | |
+| spec | pending | | |
+| tickets | pending | | |
+| implement/01-{slug} | pending | | |
+| implement/02-{slug} | pending | | |
+| review/round-1 | pending | | |
 
 ## Last session end-state
-What was done, what comes next — written at end of each session.
+Link to whichever `notes/` file was written most recently — no prose duplicated here.
 ```
 
 `Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
+
+The `Phases` table is the single source of truth for both the checklist (what used to be `- [x] phase (date)` lines) and review-round outcomes (what used to be a separate `## Review rounds` section) — a review round's `Status` column holds `PASS`/`FAIL` directly, so there's no second place recording the same fact.
+
+#### notes/{phase}.md
+
+One file per row in the `Phases` table, written at the end of the session that completes that phase — this is where "what was done, what comes next" prose goes (what used to be appended inline as `## Last session end-state` / `## Previous session end-state (...)`, growing unboundedly). Only the file for the *current*/most-recent phase needs reading to resume; older ones are historical and are read only if someone is specifically digging into that phase's history.
+
+**Filename**: take the phase string exactly as it appears in the `Phases` table, replace every `/` with `-`, append `.md`. Mechanical, no judgment call:
+- `grill` → `notes/grill.md`
+- `implement/01-schema-seed-data` → `notes/implement-01-schema-seed-data.md`
+- `review/round-1` → `notes/review-round-1.md`
+- `implement/review-round-1-fix-01-{slug}` → `notes/implement-review-round-1-fix-01-{slug}.md`
 
 ---
 

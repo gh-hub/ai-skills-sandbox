@@ -13,7 +13,7 @@ Implement one ticket. One ticket = one session. Do not implement more than one t
 
 ### 1. Load context
 
-Read `plans/{folder}/PROGRESS.md` first — source of truth. Confirm the current phase is an `implement/*` phase. If it is not, stop and tell the user — do not proceed. Take the ticket file path from the `Current ticket path` field.
+Read `plans/{folder}/PROGRESS/INDEX.md` first — source of truth. Confirm the current phase is an `implement/*` phase. If it is not, stop and tell the user — do not proceed. Take the ticket file path from the `Current ticket path` field.
 
 ### 2. Delegate the implementation
 
@@ -21,14 +21,14 @@ Nothing from here on needs the user — it's execution against an already-approv
 
 Whoever does the work (you or the sub-agent) should:
 
-1. Read `plans/{folder}/CONTEXT.md` for orientation. If "Current ticket" there disagrees with `Current ticket path` from PROGRESS.md, PROGRESS.md wins — correct CONTEXT.md before continuing.
-2. Read the ticket file at the path from PROGRESS.md's `Current ticket path` field. Do not construct this path yourself — it may be under `tickets/` for original work or `review/round-N/tickets/` for review fixes.
+1. Read `plans/{folder}/CONTEXT.md` for orientation. If "Current ticket" there disagrees with `Current ticket path` from PROGRESS/INDEX.md, PROGRESS/INDEX.md wins — correct CONTEXT.md before continuing.
+2. Read the ticket file at the path from PROGRESS/INDEX.md's `Current ticket path` field. Do not construct this path yourself — it may be under `tickets/` for original work or `review/round-N/tickets/` for review fixes.
 3. Read `coding-rules/INDEX.md` (in the dev-workflow skill's own folder — shipped defaults) and `plans/coding-rules/INDEX.md` if it exists in this project (project-specific overrides). From both, load only the rule files that apply to this ticket's tech stack — a `file` row is read directly, a `skill` row (e.g. `nestjs-service-style`) is invoked with the `Skill` tool, not just read. Do not read the full spec or grill output unless CONTEXT.md links to something specific needed.
 4. Explore only the code relevant to this ticket, guided by its acceptance criteria. Do not explore the whole codebase.
-5. Implement using TDD, test-first where possible: write a failing test at the agreed seam (from the spec's testing decisions), make it pass, run typechecking after each meaningful change, run the single test file regularly, run the full test suite once at the end. Use the coding rules loaded above. If a rule conflicts with good judgment, note the conflict in PROGRESS.md — do not silently break the rule.
+5. Implement using TDD, test-first where possible: write a failing test at the agreed seam (from the spec's testing decisions), make it pass, run typechecking after each meaningful change, run the single test file regularly, run the full test suite once at the end. Use the coding rules loaded above. If a rule conflicts with good judgment, note the conflict in this ticket's `PROGRESS/notes/` file (below) — do not silently break the rule.
 6. Do NOT run `git commit` or `git add` for a commit. The user commits.
 7. Go through each acceptance criterion in the ticket and mark each one complete (or note if something is partial and why).
-8. Update `PROGRESS.md` first: mark this ticket complete with timestamp; set current phase to the next ticket slug, or — if all tickets done — the next review phase (all *original* tickets done, no review round started yet → `review/round-1`; all tickets in `review/round-{N}/tickets/` done → `review/round-{N+1}`); set `Current ticket path` to the full path of the next ticket, or `(none)` if all tickets done; write last session end-state (what was built, what the next session needs to know). Then update `CONTEXT.md`: move completed ticket to "Completed tickets", set current ticket to the full path of the next ticket (or "none" if all done), update "Load this session" for the next session, add any gotchas discovered during implementation.
+8. Update `PROGRESS/INDEX.md` first: mark this ticket's row `done` with today's date in the Phases table; set current phase to the next ticket slug, or — if all tickets done — the next review phase (all *original* tickets done, no review round started yet → `review/round-1`; all tickets in `review/round-{N}/tickets/` done → `review/round-{N+1}`); set `Current ticket path` to the full path of the next ticket, or `(none)` if all tickets done; point "Last session end-state" at this ticket's new notes file (`PROGRESS/notes/implement-{NN}-{slug}.md`, or `PROGRESS/notes/implement-review-round-{N}-fix-{NN}-{slug}.md` for a review fix ticket). Write that notes file with what was built and what the next session needs to know. Then update `CONTEXT.md`: move completed ticket to "Completed tickets", set current ticket to the full path of the next ticket (or "none" if all done), update "Load this session" for the next session, add any gotchas discovered during implementation.
 
 If delegating, give the sub-agent the plan folder path and these instructions verbatim, plus: never run `git commit`/`git push`, never ask the user anything (make the reasonable call and note ambiguities in the plan files instead of stopping), and report back one line: what was built and the new current phase. Wait for it to finish before proceeding.
 
