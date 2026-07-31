@@ -37,12 +37,15 @@ and browse all awards with give-counts.
 - `05-story-picker-feed-badges` — award picker on the story form and award badges on feed cards
 
 ## Current state
-Phase: review/round-3
+Plan complete (2026-07-31) — round-3 was the final review; resolution:
+spec.md amended to document the e2e Docker isolation infra (see
+`review/round-3/findings.md`).
 Completed tickets: `01-schema-seed-data`, `02-awards-crud-module`,
 `03-attach-awards-to-likes`, `04-awards-page-frontend`,
 `05-story-picker-feed-badges`
 Review round-1: FAIL — see `review/round-1/findings.md`.
 Review round-2: FAIL — see `review/round-2/findings.md`.
+Review round-3: PASS — see `review/round-3/findings.md`.
 Completed fix tickets:
 - `review/round-1/tickets/01-award-delete-cascade-http-test.md` (2026-07-31)
   — added the missing HTTP-level DELETE-cascade test to `awards.spec.ts`; no
@@ -53,6 +56,10 @@ Completed fix tickets:
   `"TRUNCATE TABLE likes CASCADE;"`. Verified with a full e2e run (22/22
   passed, including `awards-page.spec.ts` and `story-award-picker.spec.ts`)
   and a re-run of `pnpm --filter api test` (10 suites/102 tests, unaffected).
+Round-3 had no fix ticket: its one finding (unrequested-but-legitimate e2e
+Docker isolation infra, not covered by spec.md) was resolved by the user
+accepting the infra as in-scope and having `spec.md` amended to document it,
+rather than reverting it.
 Current ticket: (none)
 
 ## Load this session

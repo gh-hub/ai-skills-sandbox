@@ -226,6 +226,46 @@ infrastructure is introduced.
     entry; submitting with no awards selected behaves exactly as
     `story-form-flow.spec.ts` already verifies today.
 
+### E2E infrastructure (isolated Docker stack)
+
+- The new `like_awards` table's FK to `likes` broke the plain
+  `TRUNCATE TABLE likes;` in `apps/e2e/global-setup.ts`'s `truncateLikesTable()`
+  (Postgres now rejects it without `CASCADE`), which in turn surfaced a
+  pre-existing, unrelated flakiness risk: local e2e runs shared the dev stack's
+  ports (`8080`/`5432`) and Docker Compose project name, so an e2e run could
+  collide with a developer's already-running dev stack (this repeatedly hit
+  `ao-fireblocks-callback-handler`-style port conflicts during this plan's own
+  review rounds).
+- Rather than only patching the truncate statement, e2e now runs against its
+  own fully isolated Docker Compose project (`thanks-claude-e2e`) instead of
+  reusing the dev stack's default project/ports:
+  - `apps/e2e/e2e.config.ts` (new) defines the isolated project name and ports
+    (web `8082`, Postgres `5434` by default) and a dedicated database name/creds,
+    backed by `apps/e2e/.env.e2e` (new) and loaded via a new `dotenv` dev
+    dependency in `apps/e2e/package.json`.
+  - `apps/e2e/playwright.config.ts` passes these through to `docker compose`
+    (via `-p thanks-claude-e2e --env-file apps/e2e/.env.e2e`) for both its
+    `isStackAlreadyRunning` check and its `webServer` command, and points
+    `baseURL`/`webServer.url` at the isolated web port instead of `8080`.
+  - `docker-compose.yml`'s `postgres`/`web` services take their user/password/db
+    name and ports from env vars with the previous hardcoded values as
+    defaults (`POSTGRES_USER`/`POSTGRES_PASSWORD`/`POSTGRES_DB`/
+    `POSTGRES_PORT`/`WEB_PORT`), so the same compose file serves both the
+    normal dev stack (defaults, unchanged ports) and the isolated e2e project
+    (overridden via `--env-file apps/e2e/.env.e2e`) without duplication. A new
+    `connection-info` service prints the resolved connection strings once the
+    stack is healthy, since the ports are no longer a fixed, memorizable
+    default.
+  - Root `package.json` gains `docker:up`/`docker:down` (dev stack) and
+    `docker:e2e:up`/`docker:e2e:down` (isolated e2e stack) convenience scripts.
+- Net effect: `pnpm --filter e2e test` no longer depends on port `8080`/`5432`
+  being free, and can run concurrently with a developer's own `docker compose
+  up` dev stack. This was identified and accepted as in-scope during this
+  plan's round-3 review (retroactively documented here) rather than reverted
+  back to a minimal one-line truncate fix, since the isolated stack is a
+  direct, low-risk fix for a conflict this plan's own review process hit
+  twice.
+
 ## Out of Scope
 
 - No edit or delete UI anywhere in the app. `PATCH`/`DELETE /awards/:id` exist on

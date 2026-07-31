@@ -4,7 +4,7 @@
 Let users attach awards like 🐛 Bug Slayer to their thanks-to-Claude-Code stories, and browse all awards with give-counts.
 
 ## Status
-Current phase: fixing (review round-2 failed, fix ticket in progress)
+Current phase: complete
 
 ## Links
 - [PROGRESS.md](PROGRESS.md)
@@ -15,3 +15,4 @@ Current phase: fixing (review round-2 failed, fix ticket in progress)
 - [Review](review/)
 - [Round-1 findings](review/round-1/findings.md)
 - [Round-2 findings](review/round-2/findings.md)
+- [Round-3 findings](review/round-3/findings.md)

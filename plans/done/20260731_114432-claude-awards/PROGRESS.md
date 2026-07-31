@@ -1,7 +1,7 @@
 # Progress: claude-awards
 
 ## Current phase
-review/round-3
+(complete)
 
 ## Current ticket path
 (none)
@@ -19,12 +19,36 @@ review/round-3
 - [x] implement/review-round-1-fix-01-award-delete-cascade-http-test (2026-07-31)
 - [x] review/round-2 (2026-07-31) — FAIL: e2e gate failure, global-setup.ts truncate needs CASCADE (see review/round-2/findings.md); spec-match, lint(N/A), build, unit/integration all passed
 - [x] implement/review-round-2-fix-01-e2e-global-setup-truncate-cascade (2026-07-31)
+- [x] review/round-3 (2026-07-31) — PASS — spec-match clean after user accepted the e2e Docker isolation infra as in-scope and spec.md was amended to document it (see review/round-3/findings.md); gate: lint N/A, build/unit-integration/e2e all passed (10 suites/102 tests; 22/22 e2e).
+- [x] plan complete (2026-07-31)
 
 ## Review rounds
 - **round-1** (2026-07-31): FAIL. One spec-match finding (DELETE-cascade coverage missing at the HTTP layer); lint N/A, build/tests/e2e all passed. Findings: `review/round-1/findings.md`. Fix ticket: `review/round-1/tickets/01-award-delete-cascade-http-test.md`.
 - **round-2** (2026-07-31): FAIL. Spec-match PASS (no missing/partial requirements, no scope creep of consequence, no wrong implementations); gate: lint N/A, build PASS, unit/integration PASS (10 suites/102 tests), e2e FAIL — `apps/e2e/global-setup.ts`'s `truncateLikesTable()` runs a plain `TRUNCATE TABLE likes;` with no `CASCADE`, which Postgres now rejects because the new `like_awards` table has an FK to `likes`, blocking `globalSetup` and preventing every e2e test from running. Findings: `review/round-2/findings.md`. Fix ticket: `review/round-2/tickets/01-e2e-global-setup-truncate-cascade.md`.
+- **round-3** (2026-07-31): PASS. Spec-match clean after the user accepted the previously-unrequested e2e Docker isolation infra (isolated Docker Compose project `thanks-claude-e2e`, ports 8082/5434, new `apps/e2e/e2e.config.ts`/`.env.e2e`, `docker-compose.yml` parameterization, new root `docker:*` scripts, new `dotenv` dep) as in-scope and had `spec.md` amended to document it, rather than reverting it; gate: lint N/A, build PASS, unit/integration PASS (10 suites/102 tests), e2e PASS (22/22). Findings: `review/round-3/findings.md`.
 
 ## Last session end-state
+Review round-3 ran as a full review from scratch (spec-match against `spec.md`
+plus the complete build/lint/unit-integration/e2e gate). It found exactly one
+thing: unrequested-but-legitimate e2e Docker isolation infra that had been
+introduced without a corresponding spec.md entry — an isolated Docker Compose
+project (`thanks-claude-e2e`) on ports 8082/5434 instead of the default
+8080/5432, a new `apps/e2e/e2e.config.ts` and `.env.e2e`, parameterization of
+`docker-compose.yml` to support the isolated project, new root `docker:*`
+scripts, and a new `dotenv` dependency — all added to solve the recurring
+local port-8080 conflict noted in earlier sessions, but never called out in
+`spec.md`. Presented to the user as a checkpoint (round-3 is beyond this
+plan's 2 auto-fix rounds); the user chose to accept the infra as in-scope
+rather than have it reverted, and asked for `spec.md` to be amended to
+document it instead. That amendment was made, and `review/round-3/findings.md`
+records the resolution. With spec-match clean and the full gate green
+(build/unit-integration/e2e all passed, 10 suites/102 tests, 22/22 e2e), the
+plan is now complete. The user replied "done" to archive it: `PROGRESS.md`,
+`CONTEXT.md`, and `INDEX.md` were updated to reflect completion, and the plan
+folder was moved to `plans/done/20260731_114432-claude-awards/`. No further
+sessions are expected on this plan.
+
+## Previous session end-state (round-2 fix ticket implementation)
 Implemented the round-2 fix ticket
 (`review/round-2/tickets/01-e2e-global-setup-truncate-cascade.md`), a
 one-line fix: `apps/e2e/global-setup.ts`'s `truncateLikesTable()` changed
