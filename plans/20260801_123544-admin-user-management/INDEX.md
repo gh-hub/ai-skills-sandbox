@@ -11,5 +11,4 @@ Current phase: implement (review round 1 fixes) — [Review findings](review/rou
 - [CONTEXT.md](CONTEXT.md)
 - [Grill output](grill/)
 - [Spec](spec.md)
-- [Tickets](tickets/)
-- [Review](review/)
+
