@@ -3,6 +3,16 @@
 A step-by-step map of every point in the workflow where a model choice
 matters, with a recommendation and the reasoning behind it.
 
+## Status
+
+The five haiku recommendations (rows 1, 4, 7, 12, 13) are wired into the
+skill files as of 2026-08-01 — each delegating `Agent` call now carries
+`model: haiku` plus a one-line reason inline in `SKILL.md`, `grill.md`,
+`tickets.md`, and `review.md`.
+
+The row-10 recommendation (bump the security sub-agent to `opus`) is **not
+yet applied** — still open.
+
 ## Constraint this map works within
 
 gh-dev-workflow delegates via the plain `Agent` tool (`subagent_type:
@@ -41,19 +51,19 @@ Every step falls into one of two buckets:
 
 | # | Phase / step | Live or delegated | What happens | Judgment load | Recommended model | Why |
 |---|---|---|---|---|---|---|
-| 1 | `SKILL.md` — first invocation | Delegated (sub-agent) | Create plan folder + `INDEX.md`/`CONTEXT.md`/`PROGRESS/INDEX.md` from templates | Transcription | **haiku** | Pure template fill-in, no decisions |
+| 1 | `SKILL.md` — first invocation | Delegated (sub-agent) | Create plan folder + `INDEX.md`/`CONTEXT.md`/`PROGRESS/INDEX.md` from templates | Transcription | **haiku** ✅ applied | Pure template fill-in, no decisions |
 | 2 | `grill.md` step 2 — the interview | Live (main session) | Interview the user, recommend answers, walk the decision tree | Judgment (highest in the whole workflow — everything downstream depends on getting this right) | **whatever the user is already running the session on** | Not delegated, so there's no override point here — this is why the model the *user* picks for the live session matters most. Don't suggest downgrading to save cost here. |
 | 3 | `grill.md` step 3 — confirm understanding | Live (main session) | Summarize and get explicit sign-off | Judgment (light) | same as step 2 | Same session, same reasoning |
-| 4 | `grill.md` step 4 — write-up | Delegated (sub-agent) | Write `requirements.md`/`decisions.md`/`glossary.md`/ADRs from confirmed material | Transcription | **haiku**, with one caveat below | The content was already decided in step 2-3; this is formatting, not deciding |
+| 4 | `grill.md` step 4 — write-up | Delegated (sub-agent) | Write `requirements.md`/`decisions.md`/`glossary.md`/ADRs from confirmed material | Transcription | **haiku** ✅ applied, with one caveat below | The content was already decided in step 2-3; this is formatting, not deciding |
 | 5 | `spec.md` step 2 — synthesis (+ drafted tickets, per the merge doc) | Delegated (sub-agent) | Read grill output, explore codebase, pick test seams, write `spec.md`, draft the ticket breakdown | Judgment (test-seam choice and ticket slicing both have lasting consequences) | **keep default** (no downgrade) | This step *looks* like transcription (grill output → spec) but test-seam selection and ticket slicing are real design calls baked in here, especially once it also drafts tickets |
 | 6 | `tickets.md` step 4 — approval checkpoint | Live (main session) | Present ticket breakdown, iterate with the user | Judgment (light — user is doing the judging) | same as grill | Live checkpoint, no override point |
-| 7 | `tickets.md` step 5 — write-up | Delegated (sub-agent) | Write ticket files + update progress/context/index from the *approved* list | Transcription | **haiku** | Content already approved by the user in step 4; this is pure formatting |
+| 7 | `tickets.md` step 5 — write-up | Delegated (sub-agent) | Write ticket files + update progress/context/index from the *approved* list | Transcription | **haiku** ✅ applied | Content already approved by the user in step 4; this is pure formatting |
 | 8 | `implement.md` step 2 — implementation | Delegated (sub-agent) | TDD implementation of one ticket: explore, write tests, write code, run suites | Judgment (highest-stakes delegated step — this is the actual product code) | **keep default**; consider **opus** for a ticket you already expect to be gnarly | This is real engineering work, not formatting. A weak model here doesn't just redo work — it can ship a subtly wrong implementation that review might not catch |
 | 9 | `review.md` step 3 — spec-match sub-agent | Delegated (sub-agent) | Diff against `spec.md`, report gaps/scope-creep/wrong-but-plausible requirements | Judgment (adversarial — must catch things that *look* done) | **keep default** | False negatives here ship incomplete features silently |
-| 10 | `review.md` step 3 — security sub-agent | Delegated (sub-agent) | Diff against a fixed vulnerability-class checklist, report concrete exploitable issues | Judgment (adversarial, asymmetric cost) | **opus** | A missed vulnerability is far more expensive than the marginal cost of a stronger model on this one call. This is the single best place in the whole workflow to spend extra model budget. |
+| 10 | `review.md` step 3 — security sub-agent | Delegated (sub-agent) | Diff against a fixed vulnerability-class checklist, report concrete exploitable issues | Judgment (adversarial, asymmetric cost) | **opus** ⏳ open | A missed vulnerability is far more expensive than the marginal cost of a stronger model on this one call. This is the single best place in the whole workflow to spend extra model budget. |
 | 11 | `review.md` step 4 — lint/build/test/e2e | Live (main session, plain Bash) | Run project commands, record pass/fail | N/A — not an agent call | N/A | No model involved; nothing to tune |
-| 12 | `review.md` step 6a — FAIL write-up | Delegated (sub-agent) | Write `findings.md` + fix tickets from the step-3 sub-agents' already-generated findings | Transcription | **haiku** | The judgment already happened in step 3; this step formats those findings into files and ticket shape |
-| 13 | `review.md` step 6b — PASS write-up + archive | Delegated (sub-agent) | Update progress/context/index, move plan folder to `done/` | Transcription | **haiku** | Purely mechanical, no decisions |
+| 12 | `review.md` step 6a — FAIL write-up | Delegated (sub-agent) | Write `findings.md` + fix tickets from the step-3 sub-agents' already-generated findings | Transcription | **haiku** ✅ applied | The judgment already happened in step 3; this step formats those findings into files and ticket shape |
+| 13 | `review.md` step 6b — PASS write-up + archive | Delegated (sub-agent) | Update progress/context/index, move plan folder to `done/` | Transcription | **haiku** ✅ applied | Purely mechanical, no decisions |
 
 ## The one caveat on row 4
 

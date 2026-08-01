@@ -22,7 +22,7 @@ Nothing in this phase needs the user — it's pure synthesis of grill output. Pe
 Whoever does the work (you or the sub-agent) should:
 
 1. Read `.gh-workflows/plans/{folder}/CONTEXT.md`, `.gh-workflows/plans/{folder}/grill/requirements.md`, `.gh-workflows/plans/{folder}/grill/decisions.md`, `.gh-workflows/plans/{folder}/grill/glossary.md`, and any ADRs in `.gh-workflows/plans/{folder}/grill/`. Not ask the user questions — if something is genuinely ambiguous and cannot be resolved from the grill output, note it in the spec under "Further Notes" as an open question.
-2. Explore the codebase (if one exists) to understand the current state of the area being changed. Use the domain glossary vocabulary throughout the spec.
+2. If `requirements.md` has an "## Environment notes" section, treat those facts as already confirmed — don't re-explore or re-verify them. Explore the codebase (if one exists) for whatever the area being changed still needs beyond what that section already covers. Use the domain glossary vocabulary throughout the spec.
 3. Identify test seams: sketch the seams at which the feature will be tested. Prefer existing seams. Use the highest seam possible. Propose new seams only if no existing one fits, and at the highest point available.
 4. Write the spec to `.gh-workflows/plans/{folder}/spec.md` using the template below.
 5. Using the spec just written, draft a ticket breakdown the same way `phases/tickets.md` steps 2-3 describe:

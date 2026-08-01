@@ -44,13 +44,13 @@ Before saving anything, summarize what you've heard and ask the user to confirm.
 
 ### 4. Delegate the write-up
 
-The interview is over — nothing from here on needs the user, so hand the write-up to a subagent (`Agent` tool, `general-purpose` type, not `fork`: it needs none of your conversation history, only the confirmed material below) instead of writing the files yourself. This keeps the formatting/tool-call noise out of your context.
+The interview is over — nothing from here on needs the user, so hand the write-up to a subagent (`Agent` tool, `general-purpose` type, not `fork`: it needs none of your conversation history, only the confirmed material below; `model: haiku` — the content below is already decided, this step only transcribes it into files) instead of writing the files yourself. This keeps the formatting/tool-call noise out of your context.
 
-Give it a self-contained prompt with everything gathered in the interview — problem, actors, done criteria, boundaries, constraints, each confirmed decision (with reasoning and rejected alternatives), glossary terms, and which decisions have lasting architectural consequences — plus these instructions:
+Give it a self-contained prompt with everything gathered in the interview — problem, actors, done criteria, boundaries, constraints, each confirmed decision (with reasoning and rejected alternatives), glossary terms, which decisions have lasting architectural consequences, and any codebase facts you looked up during the interview (per `grilling.md`'s "look up facts from the environment" discipline) — plus these instructions:
 
 Write to `.gh-workflows/plans/{folder}/grill/`:
 
-- **requirements.md** — what we're building, written from the user's perspective. Not a spec, not a design. Just: what problem, what solution, what done looks like, what's out of scope.
+- **requirements.md** — what we're building, written from the user's perspective. Not a spec, not a design. Just: what problem, what solution, what done looks like, what's out of scope. If any codebase facts were looked up during the interview, add an "## Environment notes" section listing them — this lets the spec phase skip re-confirming what's already known. Omit the section entirely if the interview didn't require any environment lookups.
 - **decisions.md** — every load-bearing decision made during the interview. Format:
   ```
   ## Decision: {title}

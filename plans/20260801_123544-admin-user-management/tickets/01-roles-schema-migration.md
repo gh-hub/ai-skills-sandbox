@@ -4,7 +4,7 @@
 
 **Blocked by:** None — can start immediately
 
-**Status:** ready
+**Status:** done (2026-08-01)
 
 - [x] The `roles` table exists with a unique id per role, a unique name per role, and a not-null flag marking built-in status
 - [x] The migration seeds exactly `ADMIN` and `OPERATOR` into the `roles` table with the built-in flag set to true

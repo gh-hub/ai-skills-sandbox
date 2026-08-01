@@ -53,7 +53,7 @@ Iterate until the user approves. This is the last user checkpoint before code is
 
 ### 5. Delegate the write-up
 
-The approval checkpoint is over — nothing from here on needs the user, so per the Delegation discipline in `SKILL.md`, hand the write-up to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`) instead of writing the files yourself. Give it the approved ticket breakdown (title, blocked-by, what it delivers — for every ticket) and these instructions:
+The approval checkpoint is over — nothing from here on needs the user, so per the Delegation discipline in `SKILL.md`, hand the write-up to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`, `model: haiku` — the breakdown below is already approved, this step only transcribes it into files) instead of writing the files yourself. Give it the approved ticket breakdown (title, blocked-by, what it delivers — for every ticket) and these instructions:
 
 Write to `.gh-workflows/plans/{folder}/tickets/` — one file per ticket, numbered from `01` in dependency order (blockers first):
 

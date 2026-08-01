@@ -11,7 +11,7 @@ Always start here. Every feature, every session.
 
 If invoked without a plan argument, derive a short, slug-friendly name from what the user described (e.g. `auth-refactor`) and proceed — do not ask the user to name it. Mention the chosen name in passing so they can redirect if they'd prefer a different one.
 
-Delegate creating the plan folder: spawn a fresh `general-purpose` sub-agent (via the `Agent` tool, not `fork`) telling it to create
+Delegate creating the plan folder: spawn a fresh `general-purpose` sub-agent (via the `Agent` tool, not `fork`, `model: haiku` — pure template fill-in, no judgment) telling it to create
 
 ```
 .gh-workflows/plans/YYYYMMDD_HHMMSS-{name}/
@@ -57,7 +57,7 @@ The loop, from the conductor's own turn:
 4. After a delegated sub-agent returns, or after you finish running `tickets`/`review` yourself, re-read `PROGRESS/INDEX.md` and repeat from step 1.
 5. Stop the loop when `review` reaches a pass and the user replies `done` (plan archived) or a round 3+ failure gets `stop` (paused) — report the final outcome. Also stop if a sub-agent reports an error rather than a clean completion; surface it and let the user decide how to proceed instead of continuing to spawn more agents on top of a broken state.
 
-Tickets with no blocking edges between them may be delegated as concurrent sub-agents instead of one at a time — only when their `Blocked by` fields don't create a dependency.
+Tickets are always delegated one at a time, never concurrently — every sub-agent's last step writes to the same `PROGRESS/INDEX.md`/`CONTEXT.md`, and concurrent writers would race on that state. Wait for one ticket's sub-agent to fully return (step 4) before spawning the next, even when tickets have no blocking edges between them.
 
 ## Delegation discipline
 
