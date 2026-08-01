@@ -14,8 +14,6 @@
     "strict": true,
     "strictNullChecks": true,
     "noImplicitAny": true,
-    "moduleResolution": "node10",
-    "esModuleInterop": true,
-    "ignoreDeprecations": "5.0"
+    "esModuleInterop": true
   }
 }
