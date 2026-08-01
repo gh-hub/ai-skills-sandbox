@@ -1,4 +1,4 @@
-import { users } from "../../db/schema";
+import { userRoles, users } from "../../db/schema";
 import { UsersRepository } from "./users.repository";
 import type { DbClient } from "../../db/db.module";
 
@@ -105,6 +105,30 @@ describe("UsersRepository", () => {
       const result = await repository.findById("missing-id");
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findRolesByUserId", () => {
+    it("issues a select().from(userRoles).where(eq(userId, ...)) and returns just the role strings", async () => {
+      const rows = [{ role: "ADMIN" }, { role: "OPERATOR" }];
+      const db = createDbMock(rows);
+      const repository = new UsersRepository(db as unknown as DbClient);
+
+      const result = await repository.findRolesByUserId("1");
+
+      expect(db.select).toHaveBeenCalledWith({ role: expect.anything() });
+      expect(db.from).toHaveBeenCalledWith(userRoles);
+      expect(db.where).toHaveBeenCalledWith(expect.anything());
+      expect(result).toEqual(["ADMIN", "OPERATOR"]);
+    });
+
+    it("returns an empty array when the user has no roles", async () => {
+      const db = createDbMock([]);
+      const repository = new UsersRepository(db as unknown as DbClient);
+
+      const result = await repository.findRolesByUserId("no-roles-user");
+
+      expect(result).toEqual([]);
     });
   });
 });

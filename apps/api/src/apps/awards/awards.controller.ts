@@ -12,7 +12,8 @@ import {
 } from "@nestjs/common";
 import { ApiCreatedResponse, ApiOkResponse } from "@nestjs/swagger";
 import type { Award } from "@thanks-claude/shared-types";
-import { RequireAuthGuard } from "../auth/require-auth.guard";
+import { Roles } from "../auth/roles.decorator";
+import { RolesGuard } from "../auth/roles.guard";
 import { AwardsService } from "./awards.service";
 import { AwardDto } from "./dto/award.dto";
 import { CreateAwardDto } from "./dto/create-award.dto";
@@ -35,13 +36,16 @@ export class AwardsController {
   }
 
   @Post()
-  @UseGuards(RequireAuthGuard)
+  @UseGuards(RolesGuard)
+  @Roles("ADMIN", "OPERATOR")
   @ApiCreatedResponse({ type: AwardDto })
   async create(@Body() dto: CreateAwardDto): Promise<Award> {
     return this.awardsService.create(dto);
   }
 
   @Patch(":id")
+  @UseGuards(RolesGuard)
+  @Roles("ADMIN", "OPERATOR")
   @ApiOkResponse({ type: AwardDto })
   async update(
     @Param("id", ParseUUIDPipe) id: string,
@@ -51,6 +55,8 @@ export class AwardsController {
   }
 
   @Delete(":id")
+  @UseGuards(RolesGuard)
+  @Roles("ADMIN", "OPERATOR")
   @HttpCode(204)
   async remove(@Param("id", ParseUUIDPipe) id: string): Promise<void> {
     await this.awardsService.remove(id);

@@ -52,7 +52,7 @@ describe("LikesService", () => {
 
       await service.create(
         { story: "hi", hoursSaved: 5 },
-        { id: "user-1", name: "Ada Lovelace", email: "ada@example.com" },
+        { id: "user-1", name: "Ada Lovelace", email: "ada@example.com", roles: [] },
       );
 
       expect(repository.insertLikeWithAwards).toHaveBeenCalledWith(
@@ -73,7 +73,7 @@ describe("LikesService", () => {
 
       const result = await service.create(
         { story: "hi", hoursSaved: 5 },
-        { id: "user-1", name: "Ada Lovelace", email: "ada@example.com" },
+        { id: "user-1", name: "Ada Lovelace", email: "ada@example.com", roles: [] },
       );
 
       expect(result).not.toHaveProperty("userId");

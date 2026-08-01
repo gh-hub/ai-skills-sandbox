@@ -1,4 +1,6 @@
-import { pgTable, uuid, timestamp, text, numeric } from "drizzle-orm/pg-core";
+import { pgTable, pgEnum, uuid, timestamp, text, numeric, unique } from "drizzle-orm/pg-core";
+
+export const roleEnum = pgEnum("role", ["ADMIN", "OPERATOR"]);
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -33,3 +35,16 @@ export const likeAwards = pgTable("like_awards", {
     .notNull()
     .references(() => awards.id, { onDelete: "cascade" }),
 });
+
+export const userRoles = pgTable(
+  "user_roles",
+  {
+    id: uuid("id").primaryKey().defaultRandom(),
+    userId: uuid("user_id")
+      .notNull()
+      .references(() => users.id, { onDelete: "cascade" }),
+    role: roleEnum("role").notNull(),
+    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+  },
+  (table) => [unique().on(table.userId, table.role)],
+);

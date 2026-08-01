@@ -11,6 +11,7 @@ function createUsersRepositoryMock(): jest.Mocked<UsersRepository> {
     insert: jest.fn(),
     findByEmail: jest.fn(),
     findById: jest.fn(),
+    findRolesByUserId: jest.fn().mockResolvedValue([]),
   } as unknown as jest.Mocked<UsersRepository>;
 }
 
@@ -59,9 +60,10 @@ describe("AuthService", () => {
         sub: "1",
         name: "Ada Lovelace",
         email: "ada@example.com",
+        roles: [],
       });
       expect(result).toEqual({
-        user: { id: "1", name: "Ada Lovelace", email: "ada@example.com" },
+        user: { id: "1", name: "Ada Lovelace", email: "ada@example.com", roles: [] },
         token: "signed-token",
       });
     });
@@ -92,9 +94,27 @@ describe("AuthService", () => {
 
       expect(bcrypt.compare).toHaveBeenCalledWith("secret1", "hashed-password");
       expect(result).toEqual({
-        user: { id: "1", name: "Ada Lovelace", email: "ada@example.com" },
+        user: { id: "1", name: "Ada Lovelace", email: "ada@example.com", roles: [] },
         token: "signed-token",
       });
+    });
+
+    it("looks up the user's roles and includes them in both the token payload and the returned user", async () => {
+      const usersRepository = createUsersRepositoryMock();
+      const jwtService = createJwtServiceMock();
+      usersRepository.findByEmail.mockResolvedValue(createUserRow());
+      usersRepository.findRolesByUserId.mockResolvedValue(["ADMIN", "OPERATOR"]);
+      (bcrypt.compare as jest.Mock).mockResolvedValue(true);
+      jwtService.sign.mockReturnValue("signed-token");
+      const service = new AuthService(usersRepository, jwtService);
+
+      const result = await service.login({ email: "ada@example.com", password: "secret1" });
+
+      expect(usersRepository.findRolesByUserId).toHaveBeenCalledWith("1");
+      expect(jwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ roles: ["ADMIN", "OPERATOR"] }),
+      );
+      expect(result.user.roles).toEqual(["ADMIN", "OPERATOR"]);
     });
 
     it("rejects an unknown email and a wrong password with the identical generic failure", async () => {
@@ -134,12 +154,38 @@ describe("AuthService", () => {
     it("returns the decoded user when the token is valid", () => {
       const usersRepository = createUsersRepositoryMock();
       const jwtService = createJwtServiceMock();
-      jwtService.verify.mockReturnValue({ sub: "1", name: "Ada Lovelace", email: "ada@example.com" });
+      jwtService.verify.mockReturnValue({
+        sub: "1",
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        roles: ["ADMIN"],
+      });
       const service = new AuthService(usersRepository, jwtService);
 
       const result = service.verifySessionToken("valid-token");
 
-      expect(result).toEqual({ id: "1", name: "Ada Lovelace", email: "ada@example.com" });
+      expect(result).toEqual({
+        id: "1",
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        roles: ["ADMIN"],
+      });
+    });
+
+    it("defaults roles to an empty array for a stale token issued before roles existed", () => {
+      const usersRepository = createUsersRepositoryMock();
+      const jwtService = createJwtServiceMock();
+      jwtService.verify.mockReturnValue({ sub: "1", name: "Ada Lovelace", email: "ada@example.com" });
+      const service = new AuthService(usersRepository, jwtService);
+
+      const result = service.verifySessionToken("stale-token");
+
+      expect(result).toEqual({
+        id: "1",
+        name: "Ada Lovelace",
+        email: "ada@example.com",
+        roles: [],
+      });
     });
 
     it("returns null when the token is invalid or expired", () => {

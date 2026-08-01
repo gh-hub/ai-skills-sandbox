@@ -9,7 +9,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import request, { type Response } from "supertest";
 import type { DbClient } from "../../db/db.module";
-import { likeAwards, likes } from "../../db/schema";
+import { likeAwards, likes, userRoles } from "../../db/schema";
 
 function extractSessionCookie(response: Response): string {
   const setCookieHeader: string[] = response.get("Set-Cookie") ?? [];
@@ -35,6 +35,33 @@ describe("Awards", () => {
   let db: DbClient;
   let app: INestApplication;
   let sessionCookie: string;
+
+  async function grantRole(userId: string, role: "ADMIN" | "OPERATOR"): Promise<void> {
+    await db.insert(userRoles).values({ userId, role });
+  }
+
+  async function signupUser(label: string): Promise<{ id: string; email: string }> {
+    const email = uniqueEmail(label);
+    const response = await request(app.getHttpServer())
+      .post("/auth/signup")
+      .send({ name: label, email, password: "secret1" })
+      .expect(201);
+    return { id: response.body.id, email };
+  }
+
+  async function loginAs(email: string): Promise<string> {
+    const response = await request(app.getHttpServer())
+      .post("/auth/login")
+      .send({ email, password: "secret1" })
+      .expect(200);
+    return extractSessionCookie(response);
+  }
+
+  async function signupWithRole(label: string, role: "ADMIN" | "OPERATOR"): Promise<string> {
+    const { id, email } = await signupUser(label);
+    await grantRole(id, role);
+    return loginAs(email);
+  }
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer("postgres:16-alpine").start();
@@ -62,7 +89,10 @@ describe("Awards", () => {
       .post("/auth/signup")
       .send({ name: "Ada Lovelace", email: uniqueEmail("awards"), password: "secret1" })
       .expect(201);
-    sessionCookie = extractSessionCookie(signupResponse);
+    await grantRole(signupResponse.body.id, "ADMIN");
+    // Roles ride in the JWT and are only refreshed at login, so a fresh
+    // login is needed to pick up the role just granted above.
+    sessionCookie = await loginAs(signupResponse.body.email);
   });
 
   afterAll(async () => {
@@ -142,7 +172,17 @@ describe("Awards", () => {
         .expect(401);
     });
 
-    it("returns 201 with the created award (givenCount 0) when logged in", async () => {
+    it("returns 403 when logged in with no role", async () => {
+      const noRoleCookie = await loginAs((await signupUser("post-no-role")).email);
+
+      await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", noRoleCookie)
+        .send({ title: uniqueTitle("No Role Award"), description: "desc" })
+        .expect(403);
+    });
+
+    it("returns 201 with the created award (givenCount 0) when logged in as ADMIN", async () => {
       const title = uniqueTitle("Authed Award");
 
       const response = await request(app.getHttpServer())
@@ -153,6 +193,19 @@ describe("Awards", () => {
 
       expect(response.body).toMatchObject({ title, description: "desc", icon: "🏆", givenCount: 0 });
       expect(response.body.id).toEqual(expect.any(String));
+    });
+
+    it("returns 201 with the created award when logged in as OPERATOR", async () => {
+      const operatorCookie = await signupWithRole("post-operator", "OPERATOR");
+      const title = uniqueTitle("Operator Award");
+
+      const response = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", operatorCookie)
+        .send({ title, description: "desc" })
+        .expect(201);
+
+      expect(response.body).toMatchObject({ title, description: "desc" });
     });
 
     it("rejects a missing title", async () => {
@@ -173,7 +226,35 @@ describe("Awards", () => {
   });
 
   describe("PATCH /awards/:id", () => {
-    it("updates fields without requiring a logged-in user", async () => {
+    it("returns 401 when there is no logged-in user", async () => {
+      const created = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title: uniqueTitle("Patchable Award"), description: "original" })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .patch(`/awards/${created.body.id}`)
+        .send({ description: "updated" })
+        .expect(401);
+    });
+
+    it("returns 403 when logged in with no role", async () => {
+      const created = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title: uniqueTitle("Patchable Award"), description: "original" })
+        .expect(201);
+      const noRoleCookie = await loginAs((await signupUser("patch-no-role")).email);
+
+      await request(app.getHttpServer())
+        .patch(`/awards/${created.body.id}`)
+        .set("Cookie", noRoleCookie)
+        .send({ description: "updated" })
+        .expect(403);
+    });
+
+    it("updates fields when logged in as ADMIN", async () => {
       const created = await request(app.getHttpServer())
         .post("/awards")
         .set("Cookie", sessionCookie)
@@ -182,29 +263,91 @@ describe("Awards", () => {
 
       const response = await request(app.getHttpServer())
         .patch(`/awards/${created.body.id}`)
+        .set("Cookie", sessionCookie)
         .send({ description: "updated" })
         .expect(200);
 
       expect(response.body).toMatchObject({ id: created.body.id, description: "updated" });
     });
 
+    it("updates fields when logged in as OPERATOR", async () => {
+      const created = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title: uniqueTitle("Patchable Award"), description: "original" })
+        .expect(201);
+      const operatorCookie = await signupWithRole("patch-operator", "OPERATOR");
+
+      const response = await request(app.getHttpServer())
+        .patch(`/awards/${created.body.id}`)
+        .set("Cookie", operatorCookie)
+        .send({ description: "updated by operator" })
+        .expect(200);
+
+      expect(response.body).toMatchObject({ id: created.body.id, description: "updated by operator" });
+    });
+
     it("returns 404 for an id that does not exist", async () => {
       await request(app.getHttpServer())
         .patch("/awards/00000000-0000-0000-0000-000000000000")
+        .set("Cookie", sessionCookie)
         .send({ description: "updated" })
         .expect(404);
     });
   });
 
   describe("DELETE /awards/:id", () => {
-    it("deletes without requiring a logged-in user and returns 204", async () => {
+    it("returns 401 when there is no logged-in user", async () => {
       const created = await request(app.getHttpServer())
         .post("/awards")
         .set("Cookie", sessionCookie)
         .send({ title: uniqueTitle("Deletable Award"), description: "desc" })
         .expect(201);
 
-      await request(app.getHttpServer()).delete(`/awards/${created.body.id}`).expect(204);
+      await request(app.getHttpServer()).delete(`/awards/${created.body.id}`).expect(401);
+    });
+
+    it("returns 403 when logged in with no role", async () => {
+      const created = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title: uniqueTitle("Deletable Award"), description: "desc" })
+        .expect(201);
+      const noRoleCookie = await loginAs((await signupUser("delete-no-role")).email);
+
+      await request(app.getHttpServer())
+        .delete(`/awards/${created.body.id}`)
+        .set("Cookie", noRoleCookie)
+        .expect(403);
+    });
+
+    it("deletes and returns 204 when logged in as ADMIN", async () => {
+      const created = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title: uniqueTitle("Deletable Award"), description: "desc" })
+        .expect(201);
+
+      await request(app.getHttpServer())
+        .delete(`/awards/${created.body.id}`)
+        .set("Cookie", sessionCookie)
+        .expect(204);
+
+      await request(app.getHttpServer()).get(`/awards/${created.body.id}`).expect(404);
+    });
+
+    it("deletes and returns 204 when logged in as OPERATOR", async () => {
+      const created = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title: uniqueTitle("Deletable Award"), description: "desc" })
+        .expect(201);
+      const operatorCookie = await signupWithRole("delete-operator", "OPERATOR");
+
+      await request(app.getHttpServer())
+        .delete(`/awards/${created.body.id}`)
+        .set("Cookie", operatorCookie)
+        .expect(204);
 
       await request(app.getHttpServer()).get(`/awards/${created.body.id}`).expect(404);
     });
@@ -212,6 +355,7 @@ describe("Awards", () => {
     it("returns 404 for an id that does not exist", async () => {
       await request(app.getHttpServer())
         .delete("/awards/00000000-0000-0000-0000-000000000000")
+        .set("Cookie", sessionCookie)
         .expect(404);
     });
 
@@ -234,7 +378,10 @@ describe("Awards", () => {
         .returning();
       await db.insert(likeAwards).values({ likeId: like.id, awardId: created.body.id });
 
-      await request(app.getHttpServer()).delete(`/awards/${created.body.id}`).expect(204);
+      await request(app.getHttpServer())
+        .delete(`/awards/${created.body.id}`)
+        .set("Cookie", sessionCookie)
+        .expect(204);
 
       const remainingLinks = await db
         .select()

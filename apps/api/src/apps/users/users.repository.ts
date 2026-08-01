@@ -1,9 +1,11 @@
 import { Inject, Injectable } from "@nestjs/common";
 import { eq } from "drizzle-orm";
 import { DATABASE_CONNECTION, type DbClient } from "../../db/db.module";
-import { users } from "../../db/schema";
+import { userRoles, users } from "../../db/schema";
 
 export type UserRow = typeof users.$inferSelect;
+
+export type UserRole = (typeof userRoles.$inferSelect)["role"];
 
 export type NewUserValues = {
   name: string;
@@ -28,5 +30,13 @@ export class UsersRepository {
   async findById(id: string): Promise<UserRow | null> {
     const [user] = await this.db.select().from(users).where(eq(users.id, id));
     return user ?? null;
+  }
+
+  async findRolesByUserId(userId: string): Promise<UserRole[]> {
+    const rows = await this.db
+      .select({ role: userRoles.role })
+      .from(userRoles)
+      .where(eq(userRoles.userId, userId));
+    return rows.map((row) => row.role);
   }
 }

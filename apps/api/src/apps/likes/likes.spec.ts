@@ -8,6 +8,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import request, { type Response } from "supertest";
 import type { DbClient } from "../../db/db.module";
+import { userRoles } from "../../db/schema";
 
 function extractSessionCookie(response: Response): string {
   const setCookieHeader: string[] = response.get("Set-Cookie") ?? [];
@@ -27,6 +28,7 @@ describe("Likes", () => {
   let migrationPool: Pool;
   let appPool: Pool;
   let app: INestApplication;
+  let db: DbClient;
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer("postgres:16-alpine").start();
@@ -42,7 +44,8 @@ describe("Likes", () => {
     const { DATABASE_CONNECTION } = await import("../../db/db.module");
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    appPool = moduleRef.get<DbClient>(DATABASE_CONNECTION).$client;
+    db = moduleRef.get<DbClient>(DATABASE_CONNECTION);
+    appPool = db.$client;
 
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
@@ -239,7 +242,14 @@ describe("Likes", () => {
         .post("/auth/signup")
         .send({ name: "Award Creator", email, password: "secret1" })
         .expect(201);
-      const sessionCookie = extractSessionCookie(signupResponse);
+      await db.insert(userRoles).values({ userId: signupResponse.body.id, role: "ADMIN" });
+      // Roles ride in the JWT and are only refreshed at login, so a fresh
+      // login is needed to pick up the role just granted above.
+      const loginResponse = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({ email, password: "secret1" })
+        .expect(200);
+      const sessionCookie = extractSessionCookie(loginResponse);
 
       const awardResponse = await request(app.getHttpServer())
         .post("/awards")

@@ -13,6 +13,7 @@ type SessionTokenPayload = {
   sub: string;
   name: string;
   email: string;
+  roles: string[];
 };
 
 export type AuthSession = {
@@ -64,15 +65,26 @@ export class AuthService {
 
     try {
       const payload = this.jwtService.verify<SessionTokenPayload>(token);
-      return { id: payload.sub, name: payload.name, email: payload.email };
+      return {
+        id: payload.sub,
+        name: payload.name,
+        email: payload.email,
+        roles: payload.roles ?? [],
+      };
     } catch {
       return null;
     }
   }
 
-  private buildSession(user: UserRow): AuthSession {
-    const authUser: AuthUser = { id: user.id, name: user.name, email: user.email };
-    const payload: SessionTokenPayload = { sub: user.id, name: user.name, email: user.email };
+  private async buildSession(user: UserRow): Promise<AuthSession> {
+    const roles = await this.usersRepository.findRolesByUserId(user.id);
+    const authUser: AuthUser = { id: user.id, name: user.name, email: user.email, roles };
+    const payload: SessionTokenPayload = {
+      sub: user.id,
+      name: user.name,
+      email: user.email,
+      roles,
+    };
     const token = this.jwtService.sign(payload);
 
     return { user: authUser, token };

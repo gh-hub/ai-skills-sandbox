@@ -588,12 +588,19 @@
           },
           "email": {
             "type": "string"
+          },
+          "roles": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            }
           }
         },
         "required": [
           "id",
           "name",
-          "email"
+          "email",
+          "roles"
         ]
       },
       "LoginDto": {

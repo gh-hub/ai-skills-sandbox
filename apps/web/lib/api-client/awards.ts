@@ -3,6 +3,7 @@ import { apiClient } from "./client";
 import type { components } from "./schema";
 
 type CreateAwardBody = components["schemas"]["CreateAwardDto"];
+type UpdateAwardBody = components["schemas"]["UpdateAwardDto"];
 
 export const awardsQueryKey = ["awards", "list"] as const;
 
@@ -32,6 +33,48 @@ export function useCreateAward() {
       const { error } = await apiClient.POST("/awards", { body });
       if (error) {
         throwApiError(error, "Failed to create award");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: awardsQueryKey });
+    },
+  });
+}
+
+type UpdateAwardVariables = {
+  id: string;
+  body: UpdateAwardBody;
+};
+
+export function useUpdateAward() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, body }: UpdateAwardVariables) => {
+      const { error } = await apiClient.PATCH("/awards/{id}", {
+        params: { path: { id } },
+        body,
+      });
+      if (error) {
+        throwApiError(error, "Failed to update award");
+      }
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: awardsQueryKey });
+    },
+  });
+}
+
+export function useDeleteAward() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await apiClient.DELETE("/awards/{id}", {
+        params: { path: { id } },
+      });
+      if (error) {
+        throwApiError(error, "Failed to delete award");
       }
     },
     onSuccess: () => {

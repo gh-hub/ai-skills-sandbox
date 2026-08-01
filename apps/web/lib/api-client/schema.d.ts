@@ -220,6 +220,7 @@ export interface components {
             id: string;
             name: string;
             email: string;
+            roles: string[];
         };
         LoginDto: {
             email: string;

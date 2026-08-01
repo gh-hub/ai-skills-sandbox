@@ -10,4 +10,7 @@ export class AuthUserDto implements AuthUser {
 
   @ApiProperty()
   email!: string;
+
+  @ApiProperty({ type: [String] })
+  roles!: string[];
 }

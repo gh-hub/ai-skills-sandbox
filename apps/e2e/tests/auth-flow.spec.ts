@@ -1,5 +1,8 @@
 import { randomUUID } from "node:crypto";
 import { expect, test } from "@playwright/test";
+import { grantRole, loginToRefreshSession } from "./helpers";
+
+const PASSWORD = "hunter22";
 
 function uniqueEmail(): string {
   return `e2e-${randomUUID()}@example.com`;
@@ -128,4 +131,43 @@ test("a logged-in session survives a page reload", async ({ page }) => {
   await page.reload();
 
   await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+});
+
+test("a user with no role sees no role badges in the header", async ({
+  page,
+}) => {
+  const email = uniqueEmail();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.getByRole("tab", { name: "Create account" }).click();
+  await page.getByLabel("Name").fill("Plain Header Tester");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+
+  await expect(page.getByRole("list", { name: "Roles" })).not.toBeVisible();
+});
+
+test("a user granted ADMIN sees an ADMIN badge next to their name in the header", async ({
+  page,
+}) => {
+  const email = uniqueEmail();
+
+  await page.goto("/");
+  await page.getByRole("button", { name: "Login" }).click();
+  await page.getByRole("tab", { name: "Create account" }).click();
+  await page.getByLabel("Name").fill("Admin Header Tester");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill(PASSWORD);
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+
+  grantRole(email, "ADMIN");
+  await loginToRefreshSession(page, email, PASSWORD);
+  await page.reload();
+
+  await expect(page.getByRole("list", { name: "Roles" })).toBeVisible();
+  await expect(page.getByText("ADMIN")).toBeVisible();
 });

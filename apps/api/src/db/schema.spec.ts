@@ -4,7 +4,7 @@ import { drizzle } from "drizzle-orm/node-postgres";
 import { migrate } from "drizzle-orm/node-postgres/migrator";
 import { PostgreSqlContainer, StartedPostgreSqlContainer } from "@testcontainers/postgresql";
 import { eq } from "drizzle-orm";
-import { awards, likeAwards, likes } from "./schema";
+import { awards, likeAwards, likes, userRoles, users } from "./schema";
 
 const SEEDED_AWARDS = [
   { icon: "🐛", title: "Bug Slayer", description: "Squashed a nasty bug that had been haunting the codebase" },
@@ -72,5 +72,40 @@ describe("awards schema & seed migration", () => {
     const remainingLinks = await db.select().from(likeAwards).where(eq(likeAwards.likeId, like.id));
 
     expect(remainingLinks).toHaveLength(0);
+  });
+
+  it("gives every new user zero roles by default", async () => {
+    const [user] = await db
+      .insert(users)
+      .values({ name: "No Roles", email: "no-roles@example.com", passwordHash: "hashed" })
+      .returning();
+
+    const roles = await db.select().from(userRoles).where(eq(userRoles.userId, user.id));
+
+    expect(roles).toHaveLength(0);
+  });
+
+  it("cascades user_roles cleanup when the referenced user is deleted", async () => {
+    const [user] = await db
+      .insert(users)
+      .values({ name: "Cascade Test", email: "cascade-role@example.com", passwordHash: "hashed" })
+      .returning();
+    await db.insert(userRoles).values({ userId: user.id, role: "ADMIN" });
+
+    await db.delete(users).where(eq(users.id, user.id));
+
+    const remainingRoles = await db.select().from(userRoles).where(eq(userRoles.userId, user.id));
+
+    expect(remainingRoles).toHaveLength(0);
+  });
+
+  it("rejects a duplicate (user_id, role) pair", async () => {
+    const [user] = await db
+      .insert(users)
+      .values({ name: "Unique Test", email: "unique-role@example.com", passwordHash: "hashed" })
+      .returning();
+    await db.insert(userRoles).values({ userId: user.id, role: "OPERATOR" });
+
+    await expect(db.insert(userRoles).values({ userId: user.id, role: "OPERATOR" })).rejects.toThrow();
   });
 });
