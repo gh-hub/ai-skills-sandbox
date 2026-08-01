@@ -194,16 +194,16 @@ One subfolder per review round, written by `phases/review.md` — a pass/fail ga
 ```
 review/
   round-1/
-    findings.md      ← spec-match gaps + lint/build/test/e2e output (only written on failure)
-    tickets/          ← one fix ticket per finding (only written on failure)
+    findings.md      ← spec-match gaps + security findings + lint/build/test/e2e output (only written on failure)
+    tickets/          ← one fix ticket per finding, tagged [spec]/[security] (only written on failure)
       01-{slug}.md
   round-2/
     ...
 ```
 
-Round `N` **fails** when the diff doesn't fully satisfy `spec.md`, or lint, build, the unit/integration suite, or the e2e suite don't pass. On failure, `findings.md` and fix tickets are written; for rounds 1-2 the plan loops straight back to `implement` with no user checkpoint (this is an objective gate, not a judgment call). Round 3+ failures stop and ask the user to `continue` (round `N+1`) or `stop` (leave the plan in-progress).
+Round `N` **fails** when the diff doesn't fully satisfy `spec.md`, a sub-agent finds a concrete security vulnerability introduced by the diff, or lint, build, the unit/integration suite, or the e2e suite don't pass. On failure, `findings.md` and fix tickets are written; for rounds 1-2 the plan loops straight back to `implement` with no user checkpoint (this is an objective gate, not a judgment call). Round 3+ failures stop and ask the user to `continue` (round `N+1`) or `stop` (leave the plan in-progress).
 
-Round `N` **passes** when the diff satisfies `spec.md` and lint, build, unit/integration tests, and e2e tests (whichever of these exist in the project) are all green — no `findings.md`/`tickets/` are written for a passing round. The user then confirms `done` to archive the plan.
+Round `N` **passes** when the diff satisfies `spec.md`, no security findings are reported, and lint, build, unit/integration tests, and e2e tests (whichever of these exist in the project) are all green — no `findings.md`/`tickets/` are written for a passing round. The user then confirms `done` to archive the plan.
 
 ---
 

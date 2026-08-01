@@ -1,13 +1,13 @@
 ---
 name: gh-dev-workflow/review
-description: Phase 5 of gh-dev-workflow. Pass/fail gate — checks the implemented diff against spec.md, and confirms lint, build, unit/integration tests, and e2e tests all pass. No severity tags, no tech-debt log, no standards/smell pass (that's the separate gh-codereview-workflow-test skill). On failure, writes fix tickets and loops back to implement automatically for up to 2 rounds; round 3+ needs a live user decision. On pass, one live checkpoint to archive. Always runs live — never delegated whole, since it may need to check in with the user partway through.
+description: Phase 5 of gh-dev-workflow. Pass/fail gate — checks the implemented diff against spec.md, checks it for concrete security vulnerabilities, and confirms lint, build, unit/integration tests, and e2e tests all pass. No severity tags, no tech-debt log, no standards/smell pass (that's the separate gh-codereview-workflow-test skill). On failure, writes fix tickets and loops back to implement automatically for up to 2 rounds; round 3+ needs a live user decision. On pass, one live checkpoint to archive. Always runs live — never delegated whole, since it may need to check in with the user partway through.
 ---
 
 # Review Phase
 
 ## Purpose
 
-Confirm two things about everything implemented so far: it does what `spec.md` says (no missing or wrong requirements, no unrequested scope), and it actually works — lint, build, unit/integration tests, and e2e tests all pass. This is a pass/fail gate, not a full code-quality review — no severity tags, no tech-debt log, no standards or smell pass. For that, run the standalone `/gh-codereview-workflow-test` skill against this branch, any time, independent of this phase.
+Confirm three things about everything implemented so far: it does what `spec.md` says (no missing or wrong requirements, no unrequested scope), it introduces no concrete security vulnerability, and it actually works — lint, build, unit/integration tests, and e2e tests all pass. This is a pass/fail gate, not a full code-quality review — no severity tags, no tech-debt log, no standards or smell pass. For that, run the standalone `/gh-codereview-workflow-test` skill against this branch, any time, independent of this phase.
 
 ## Process
 
@@ -27,9 +27,28 @@ If the base branch is unclear, read `PROGRESS/INDEX.md` — it should record the
 
 Confirm the diff is non-empty before spawning the sub-agent.
 
-### 3. Check spec match
+### 3. Check spec match and security
 
-Spawn a sub-agent (`Agent` tool, `general-purpose` type, Bash access). It must run the diff command itself — do not paste the diff into the prompt. Give it the full contents of `spec.md` and this brief: "Run `git diff {base-branch}...HEAD`, then report: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Quote the spec line for each finding. No severity tags needed — every finding here is a gap that must close. Under 300 words."
+Spawn two sub-agents in parallel (`Agent` tool, `general-purpose` type, Bash access, one message with both calls — they're independent). Each must run the diff command itself — do not paste the diff into either prompt.
+
+**Spec-match sub-agent** — give it the full contents of `spec.md` and this brief: "Run `git diff {base-branch}...HEAD`, then report: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Quote the spec line for each finding. No severity tags needed — every finding here is a gap that must close. Under 300 words."
+
+**Security sub-agent** — give it this brief: "Run `git diff {base-branch}...HEAD`, then check the changed lines against this baseline:
+  - **Injection** — unsanitized input reaching a SQL/NoSQL/command/LDAP/template sink
+  - **Broken authentication/session handling** — missing auth checks, weak/predictable session tokens, session fixation
+  - **Broken access control** — missing authorization checks, IDOR, privilege escalation paths
+  - **Sensitive data exposure** — hardcoded secrets/credentials/PII, secrets logged or returned in responses, missing encryption for sensitive data in transit/at rest
+  - **Security misconfiguration** — permissive CORS, disabled TLS/cert verification, stack traces or internal errors exposed to callers, insecure defaults
+  - **Cross-site scripting (XSS)** — unescaped user input rendered into HTML/JS
+  - **Insecure deserialization** — deserializing untrusted data without validation
+  - **Vulnerable dependencies** — a newly added/bumped dependency with a known CVE, if evident from the diff
+  - **Insufficient input validation** — missing bounds/type/format checks on user-controlled input before use
+  - **SSRF** — server-side requests built from user-controlled URLs/hosts without allowlisting
+  - **Path traversal** — user input used to build file paths without sanitization
+  - **Cryptographic issues** — weak/broken algorithms (e.g. MD5/SHA1 for passwords, ECB mode), hardcoded keys/IVs, insufficient randomness for tokens/nonces
+  - **CSRF** — state-changing endpoints missing CSRF protection where the framework requires it
+
+  Report only concrete, exploitable issues introduced by this diff — not general hardening advice or anything outside the changed lines. For each finding: name the vulnerability class, quote the vulnerable hunk, and state the concrete exploit scenario (what input or actor triggers it, what breaks). No severity tags needed — every finding here is a vulnerability that must close before merge, same as a spec gap. Under 300 words."
 
 ### 4. Check it works
 
@@ -44,18 +63,18 @@ Discover each command from `package.json` scripts (e.g. `lint`, `build`, `test`,
 
 ### 5. Decide pass/fail
 
-**PASS** = the sub-agent in step 3 found no findings AND every check in step 4 that applies to this project (lint, build, unit/integration tests, e2e tests) passes.
-**FAIL** = otherwise — record which specific check(s) failed.
+**PASS** = the spec-match sub-agent found no findings AND the security sub-agent found no findings AND every check in step 4 that applies to this project (lint, build, unit/integration tests, e2e tests) passes.
+**FAIL** = otherwise — record which specific check(s) failed, including which sub-agent(s) reported findings.
 
 ### 6a. On FAIL
 
 Delegate the write-up (per the Delegation discipline in `SKILL.md`, this phase always runs live, but the mechanical tail below can go to a fresh `general-purpose` sub-agent):
 
-1. Write `.gh-workflows/plans/{folder}/review/round-{N}/findings.md` — the sub-agent's spec findings verbatim, plus a checklist of every step-4 check that ran (lint / build / unit-integration / e2e) with pass/fail and the failure output for any that failed.
-2. Write one fix ticket per finding to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/`, numbered from `01`, same format as `phases/tickets.md`.
+1. Write `.gh-workflows/plans/{folder}/review/round-{N}/findings.md` — the spec sub-agent's findings verbatim under a "Spec match" heading, the security sub-agent's findings verbatim under a "Security" heading, plus a checklist of every step-4 check that ran (lint / build / unit-integration / e2e) with pass/fail and the failure output for any that failed.
+2. Write one fix ticket per finding (spec and security alike) to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/`, numbered from `01`, same format as `phases/tickets.md`. Tag each ticket's title with its source (`[spec]` / `[security]`) so a security fix isn't mistaken for a feature gap.
 3. Update `PROGRESS/INDEX.md` first, then `CONTEXT.md` to match:
    - `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `FAIL` with today's date in the Phases table, set current phase to `implement`, set `Current ticket path` to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/review-round-{N}.md`.
-   - `PROGRESS/notes/review-round-{N}.md`: the findings summary (one-line-per-check gate result plus the spec-match gaps), linking to `review/round-{N}/findings.md` for full detail.
+   - `PROGRESS/notes/review-round-{N}.md`: the findings summary (one-line-per-check gate result plus the spec-match gaps and the security findings), linking to `review/round-{N}/findings.md` for full detail.
    - `CONTEXT.md`: note round `{N}` failed (one line, link to `findings.md`), set current phase to `implement`, set current ticket to the same path.
    - `INDEX.md`: add link to `review/round-{N}/findings.md`, update status to `fixing`.
 
@@ -76,14 +95,14 @@ Record the decision in `PROGRESS/INDEX.md`/`CONTEXT.md`. On "continue", proceed 
 
 This is a live checkpoint — never delegate it:
 ```
-Review round {N}: implementation matches spec.md. Lint, build, tests, and e2e all pass.
+Review round {N}: implementation matches spec.md, no security findings. Lint, build, tests, and e2e all pass.
 
 Reply "done" to archive this plan.
 ```
 
 Once the user replies "done", delegate the write-up to a fresh `general-purpose` sub-agent:
 1. `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `PASS` with today's date, set current phase to `(complete)`, point "Last session end-state" at `notes/review-round-{N}.md`.
-2. `PROGRESS/notes/review-round-{N}.md`: confirm spec-match clean and the full gate green, with a one-line summary of what passed.
+2. `PROGRESS/notes/review-round-{N}.md`: confirm spec-match clean, no security findings, and the full gate green, with a one-line summary of what passed.
 3. `CONTEXT.md`: add "Plan complete".
 4. `INDEX.md`: update status to `complete`.
 5. Create `.gh-workflows/plans/done/` if it doesn't exist, then move the plan folder to `.gh-workflows/plans/done/YYYYMMDD_HHMMSS-{name}/` (reuse the plan's original timestamp/name, not a new one).

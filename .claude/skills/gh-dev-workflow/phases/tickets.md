@@ -18,14 +18,15 @@ Read `PROGRESS/INDEX.md` first. Confirm the current phase is `tickets`. If PROGR
 Read:
 - `.gh-workflows/plans/{folder}/CONTEXT.md`
 - `.gh-workflows/plans/{folder}/spec.md`
+- `.gh-workflows/plans/{folder}/PROGRESS/notes/spec.md`
 
-Explore the codebase if you haven't already. Ticket titles and descriptions must use the domain glossary vocabulary from `.gh-workflows/plans/{folder}/grill/glossary.md`.
+If `PROGRESS/notes/spec.md` contains a `## Draft ticket breakdown` section, treat that as the starting point instead of exploring the codebase and drafting from scratch — skip straight to step 4 with the carried-over draft. If it's absent (plan created before this change, or the spec phase produced no draft for some reason), fall back to the current behavior: explore the codebase and run steps 2-3 below. Ticket titles and descriptions must use the domain glossary vocabulary from `.gh-workflows/plans/{folder}/grill/glossary.md`.
 
-### 2. Look for prefactor opportunities
+### 2. Look for prefactor opportunities (only if no draft was carried over)
 
 Before slicing the feature, look for code changes that would make the implementation easier. "Make the change easy, then make the easy change." Prefactor tickets go first.
 
-### 3. Draft vertical slices
+### 3. Draft vertical slices (only if no draft was carried over)
 
 Each ticket must be:
 - A narrow but complete path through every layer (schema, API, UI, tests)
@@ -38,7 +39,7 @@ Give each ticket its **blocking edges** — the tickets that must complete befor
 
 ### 4. User approval checkpoint
 
-Present the breakdown as a numbered list. For each ticket:
+Present the breakdown (whether carried over from spec or freshly drafted) as a numbered list. For each ticket:
 - **Title**: short descriptive name
 - **Blocked by**: which tickets must complete first (or "none")
 - **What it delivers**: the end-to-end behavior this ticket makes work

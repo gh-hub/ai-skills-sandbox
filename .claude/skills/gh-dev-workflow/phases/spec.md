@@ -25,9 +25,14 @@ Whoever does the work (you or the sub-agent) should:
 2. Explore the codebase (if one exists) to understand the current state of the area being changed. Use the domain glossary vocabulary throughout the spec.
 3. Identify test seams: sketch the seams at which the feature will be tested. Prefer existing seams. Use the highest seam possible. Propose new seams only if no existing one fits, and at the highest point available.
 4. Write the spec to `.gh-workflows/plans/{folder}/spec.md` using the template below.
-5. Update `PROGRESS/INDEX.md` first: mark `spec` `done` with today's date in the Phases table, set current phase to `tickets`, point "Last session end-state" at `notes/spec.md`. Write `PROGRESS/notes/spec.md` with the session end-state. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
+5. Using the spec just written, draft a ticket breakdown the same way `phases/tickets.md` steps 2-3 describe:
+   - Look for prefactor opportunities first ("make the change easy, then make the easy change") — these tickets go first.
+   - Slice the remaining feature into vertical slices: each a narrow but complete path through every layer (schema, API, UI, tests), independently demoable, sized to fit one implement session. Give each ticket its blocking edges.
+   - Wide mechanical refactors (rename a column, retype a shared symbol) use expand-contract, one batch per ticket, per the "Wide refactors are the exception" note in `tickets.md`.
+   - For each ticket, capture: title, blocked-by, and what it delivers end-to-end. This is a **draft only** — do not write anything under `.gh-workflows/plans/{folder}/tickets/`, and do not add ticket rows to `PROGRESS/INDEX.md`. That still happens in the tickets phase, after user approval.
+6. Update `PROGRESS/INDEX.md` first: mark `spec` `done` with today's date in the Phases table, set current phase to `tickets`, point "Last session end-state" at `notes/spec.md`. Write `PROGRESS/notes/spec.md` with the session end-state, including a `## Draft ticket breakdown` section listing the drafted tickets (title / blocked-by / what it delivers), so the breakdown survives the session boundary between spec and tickets phases. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
 
-If delegating, give the sub-agent the plan folder path and these instructions verbatim, plus: never run `git commit`/`git push`, never ask the user anything, and report back one line confirming what was written. Wait for it to finish before proceeding.
+If delegating, give the sub-agent the plan folder path and these instructions verbatim — including the draft-ticket-breakdown step and the `PROGRESS/notes/spec.md` section requirement — plus: never run `git commit`/`git push`, never ask the user anything, and report back one line confirming what was written. Wait for it to finish before proceeding.
 
 Spec template:
 
@@ -79,4 +84,4 @@ Open questions, risks, or things to revisit.
 
 ### 3. Hand off
 
-Tell the user: "Spec written. Start a new session and run `/gh-dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).
+Tell the user: "Spec written. Start a new session and run `/gh-dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure). Also mention that a draft ticket breakdown was written alongside the spec and will be presented for approval when the tickets phase starts.

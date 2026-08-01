@@ -1,6 +1,6 @@
 ---
 name: gh-dev-workflow
-description: End-to-end development workflow. Entry point for all feature work. Reads PROGRESS/INDEX.md to resume from any phase. Phases in order: grill → spec → tickets → implement (per ticket) → review (per round — a spec-match + lint/build/test/e2e gate; auto-loops back to implement on failure). For a full standards/smell code-quality review, use the separate gh-codereview-workflow-test skill.
+description: End-to-end development workflow. Entry point for all feature work. Reads PROGRESS/INDEX.md to resume from any phase. Phases in order: grill → spec → tickets → implement (per ticket) → review (per round — a spec-match + security + lint/build/test/e2e gate; auto-loops back to implement on failure). For a full standards/smell code-quality review, use the separate gh-codereview-workflow-test skill.
 ---
 
 # gh-dev-workflow
@@ -38,7 +38,7 @@ grill     → phases/grill.md
 spec      → phases/spec.md
 tickets   → phases/tickets.md
 implement → phases/implement.md   (one session per ticket)
-review    → phases/review.md      (one session per round; spec-match + lint/build/test/e2e gate, no severity tags)
+review    → phases/review.md      (one session per round; spec-match + security + lint/build/test/e2e gate, no severity tags)
 ```
 
 A round is `review/round-{N}`. On failure, it writes fix tickets and — for rounds 1-2 — loops straight back to `implement` with no user checkpoint (it's an objective gate, not a judgment call); once those fix tickets are done, the phase becomes `review/round-{N+1}`. Round 3+ failures require a live "continue"/"stop" decision (see `phases/review.md`). On pass, the only remaining step is a live "done" checkpoint to archive the plan.
@@ -52,8 +52,8 @@ Triggered when the user asks to run the rest of a plan autonomously (or invokes 
 The loop, from the conductor's own turn:
 
 1. Read `PROGRESS/INDEX.md`, get the current phase.
-2. **`spec`** and **`implement/{ticket}`** — no user input needed mid-phase, so delegate: spawn a fresh sub-agent with a self-contained prompt telling it to read and follow the matching file in `phases/` for this plan (and, for implement, which ticket), update `PROGRESS/INDEX.md` (and write `PROGRESS/notes/{phase-slug}.md`)/`CONTEXT.md`/`INDEX.md` exactly as that phase file says, never run `git commit`/`git push`, never ask the user anything (make the reasonable call and note ambiguities in the plan files instead of stopping), and report back one line: what completed and the new current phase.
-3. **`tickets`** and **`review/round-{N}`** — these may need a real user checkpoint (ticket-list approval; the round-3+ continue/stop decision; the final pass "done" archive) that only you, in this live conversation, can collect. Do not delegate these to a sub-agent — run the phase file yourself, exactly as normal, and let any checkpoint surface as an ordinary reply from the user. On a `review/round-{N}` failure at round 1-2, the phase file itself resolves with no checkpoint (an objective gate, not a judgment call) — treat that the same as a delegated phase completing and move straight to step 4.
+2. **`spec`** and **`implement/{ticket}`** — no user input needed mid-phase, so delegate: spawn a fresh sub-agent with a self-contained prompt telling it to read and follow the matching file in `phases/` for this plan (and, for implement, which ticket), update `PROGRESS/INDEX.md` (and write `PROGRESS/notes/{phase-slug}.md`)/`CONTEXT.md`/`INDEX.md` exactly as that phase file says, never run `git commit`/`git push`, never ask the user anything (make the reasonable call and note ambiguities in the plan files instead of stopping), and report back one line: what completed and the new current phase. For `spec`, the sub-agent's report also reflects the draft ticket breakdown it wrote as part of its work; that draft is already persisted in `PROGRESS/notes/spec.md` by the sub-agent, so no extra plumbing needed — just don't discard it.
+3. **`tickets`** and **`review/round-{N}`** — these may need a real user checkpoint (ticket-list approval; the round-3+ continue/stop decision; the final pass "done" archive) that only you, in this live conversation, can collect. Do not delegate these to a sub-agent — run the phase file yourself, exactly as normal, and let any checkpoint surface as an ordinary reply from the user. For `tickets`, the checkpoint now starts from the draft breakdown carried over from `spec` (per `phases/tickets.md`) rather than drafting fresh. On a `review/round-{N}` failure at round 1-2, the phase file itself resolves with no checkpoint (an objective gate, not a judgment call) — treat that the same as a delegated phase completing and move straight to step 4.
 4. After a delegated sub-agent returns, or after you finish running `tickets`/`review` yourself, re-read `PROGRESS/INDEX.md` and repeat from step 1.
 5. Stop the loop when `review` reaches a pass and the user replies `done` (plan archived) or a round 3+ failure gets `stop` (paused) — report the final outcome. Also stop if a sub-agent reports an error rather than a clean completion; surface it and let the user decide how to proceed instead of continuing to spawn more agents on top of a broken state.
 
