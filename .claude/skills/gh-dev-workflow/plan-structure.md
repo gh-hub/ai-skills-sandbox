@@ -5,18 +5,18 @@ Canonical definition of every file and folder inside a plan.
 ## Folder layout
 
 ```
-plans/
+.gh-workflows/plans/
   coding-rules/          ← optional, project-specific rules only; not auto-created
-  tech-debt/              ← global backlog, one file per open DEBT item; written by the separate codereview-workflow skill, not by dev-workflow
+  tech-debt/              ← global backlog, one file per open DEBT item; written by the separate gh-codereview-workflow-test skill, not by gh-dev-workflow
     YYYYMMDD_HHMMSS-{slug}.md
   done/                  ← completed plans, moved here once review passes and the user confirms "done"
     YYYYMMDD_HHMMSS-{name}/
   YYYYMMDD_HHMMSS-{name}/  ← in-progress plans (only these show here)
 ```
 
-Plans in `plans/` root are in-progress. When review passes and the user confirms, the plan moves to `plans/done/`. `coding-rules/` (if it exists) and `tech-debt/` stay at the root always. `tech-debt/` is dev-workflow's neighbor, not its output — see the `codereview-workflow` skill for how it's populated, and `debt-workflow` for how it's triaged.
+Plans in `.gh-workflows/plans/` root are in-progress. When review passes and the user confirms, the plan moves to `.gh-workflows/plans/done/`. `coding-rules/` (if it exists) and `tech-debt/` stay at the root always. `tech-debt/` is gh-dev-workflow's neighbor, not its output — see the `gh-codereview-workflow-test` skill for how it's populated, and `gh-debt-workflow` for how it's triaged.
 
-Not every plan here was created by dev-workflow's own `grill` phase. `codereview-workflow`'s `decide` phase can seed a plan directly at the `implement` phase — grill/spec/tickets marked skipped in `PROGRESS/INDEX.md`, `spec.md` framed as the review's findings, one ticket per BLOCK finding. Such a plan looks and resumes exactly like any other in-progress plan; there's nothing dev-workflow needs to do differently.
+Not every plan here was created by gh-dev-workflow's own `grill` phase. `gh-codereview-workflow-test`'s `decide` phase can seed a plan directly at the `implement` phase — grill/spec/tickets marked skipped in `PROGRESS/INDEX.md`, `spec.md` framed as the review's findings, one ticket per BLOCK finding. Such a plan looks and resumes exactly like any other in-progress plan; there's nothing gh-dev-workflow needs to do differently.
 
 ## Plan folder name
 
@@ -85,8 +85,8 @@ Completed tickets: {list or "none"}
 Current ticket: {path or "none"}
 
 ## Load this session
-- plans/{folder}/tickets/{current}.md
-- coding-rules/{relevant}.md (skill defaults) + plans/coding-rules/{relevant}.md (project, if present)
+- .gh-workflows/plans/{folder}/tickets/{current}.md
+- coding-rules/{relevant}.md (skill defaults) + .gh-workflows/plans/coding-rules/{relevant}.md (project, if present)
 
 ## Gotchas
 - Fact that would cause a mistake if unknown
@@ -136,7 +136,7 @@ grill
 Link to whichever `notes/` file was written most recently — no prose duplicated here.
 ```
 
-`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `plans/{folder}/tickets/01-auth.md` or `plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
+`Current ticket path` holds the exact file path of the ticket being implemented (e.g. `.gh-workflows/plans/{folder}/tickets/01-auth.md` or `.gh-workflows/plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
 
 The `Phases` table is the single source of truth for both the checklist (what used to be `- [x] phase (date)` lines) and review-round outcomes (what used to be a separate `## Review rounds` section) — a review round's `Status` column holds `PASS`/`FAIL` directly, so there's no second place recording the same fact.
 
@@ -189,7 +189,7 @@ Numbered from 01 in dependency order (blockers first).
 
 ### review/
 
-One subfolder per review round, written by `phases/review.md` — a pass/fail gate, not a severity-tagged review. That fuller review (standards, code smells) lives in the separate `codereview-workflow` skill and is not tied to a plan's folder structure at all.
+One subfolder per review round, written by `phases/review.md` — a pass/fail gate, not a severity-tagged review. That fuller review (standards, code smells) lives in the separate `gh-codereview-workflow-test` skill and is not tied to a plan's folder structure at all.
 
 ```
 review/
@@ -209,18 +209,18 @@ Round `N` **passes** when the diff satisfies `spec.md` and lint, build, unit/int
 
 ---
 
-## plans/coding-rules/
+## .gh-workflows/plans/coding-rules/
 
-The dev-workflow skill ships its own default rules in `coding-rules/` inside the skill's folder (`general.md`, stack-specific files, and rows pointing at standalone skills like `nestjs-service-style`) — those apply to every project the skill is installed in and are never generated per-project.
+The gh-dev-workflow skill ships its own default rules in `coding-rules/` inside the skill's folder (`general.md`, stack-specific files, and rows pointing at standalone skills like `nestjs-service-style`) — those apply to every project the skill is installed in and are never generated per-project.
 
-`plans/coding-rules/` at the project root is the optional layer on top of that: project-specific rules only, things that are true of this one repo and don't belong in the shared skill defaults. It is **not** created automatically. Create it only when a rule actually needs recording — same lazy pattern as `plans/tech-debt/`. A project with no rule of its own simply has no `plans/coding-rules/` folder, and that's the expected state, not a missing setup step.
+`.gh-workflows/plans/coding-rules/` at the project root is the optional layer on top of that: project-specific rules only, things that are true of this one repo and don't belong in the shared skill defaults. It is **not** created automatically. Create it only when a rule actually needs recording — same lazy pattern as `.gh-workflows/plans/tech-debt/`. A project with no rule of its own simply has no `.gh-workflows/plans/coding-rules/` folder, and that's the expected state, not a missing setup step.
 
-When a project-specific rule does come up, create `plans/coding-rules/INDEX.md`:
+When a project-specific rule does come up, create `.gh-workflows/plans/coding-rules/INDEX.md`:
 
 ```markdown
 # Coding Rules Index (project overrides)
 
-Read alongside the dev-workflow skill's own coding-rules/INDEX.md. Rules here add to or override the skill defaults where they conflict — only add a rule here if it's specific to this project.
+Read alongside the gh-dev-workflow skill's own coding-rules/INDEX.md. Rules here add to or override the skill defaults where they conflict — only add a rule here if it's specific to this project.
 
 ## Rule files
 

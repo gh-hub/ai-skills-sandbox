@@ -1,11 +1,11 @@
 ---
-name: handoff
+name: gh-handoff
 description: Compact the current conversation into a handoff document for another agent to pick up.
 argument-hint: "What will the next session be used for?"
 disable-model-invocation: true
 ---
 
-Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to the temporary directory of the user's OS - not the current workspace.
+Write a handoff document summarising the current conversation so a fresh agent can continue the work. Save to `.gh-workflows/handoff/YYYYMMDD_HHMMSS-{slug}.md` at the project's repository root (create the folder if it doesn't exist), timestamp from `date +%Y%m%d_%H%M%S` run at creation time.
 
 Include a "suggested skills" section in the document, which suggests skills that the agent should invoke.
 

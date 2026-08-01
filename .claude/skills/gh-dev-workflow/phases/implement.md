@@ -1,6 +1,6 @@
 ---
-name: dev-workflow/implement
-description: Phase 4 of dev-workflow. Implements one ticket per session. No commits. Loads CONTEXT.md and relevant coding rules at start. Delegates the implementation to a sub-agent when run live; runs directly when already running as one.
+name: gh-dev-workflow/implement
+description: Phase 4 of gh-dev-workflow. Implements one ticket per session. No commits. Loads CONTEXT.md and relevant coding rules at start. Delegates the implementation to a sub-agent when run live; runs directly when already running as one.
 ---
 
 # Implement Phase
@@ -13,7 +13,7 @@ Implement one ticket. One ticket = one session. Do not implement more than one t
 
 ### 1. Load context
 
-Read `plans/{folder}/PROGRESS/INDEX.md` first — source of truth. Confirm the current phase is an `implement/*` phase. If it is not, stop and tell the user — do not proceed. Take the ticket file path from the `Current ticket path` field.
+Read `.gh-workflows/plans/{folder}/PROGRESS/INDEX.md` first — source of truth. Confirm the current phase is an `implement/*` phase. If it is not, stop and tell the user — do not proceed. Take the ticket file path from the `Current ticket path` field.
 
 ### 2. Delegate the implementation
 
@@ -21,9 +21,9 @@ Nothing from here on needs the user — it's execution against an already-approv
 
 Whoever does the work (you or the sub-agent) should:
 
-1. Read `plans/{folder}/CONTEXT.md` for orientation. If "Current ticket" there disagrees with `Current ticket path` from PROGRESS/INDEX.md, PROGRESS/INDEX.md wins — correct CONTEXT.md before continuing.
+1. Read `.gh-workflows/plans/{folder}/CONTEXT.md` for orientation. If "Current ticket" there disagrees with `Current ticket path` from PROGRESS/INDEX.md, PROGRESS/INDEX.md wins — correct CONTEXT.md before continuing.
 2. Read the ticket file at the path from PROGRESS/INDEX.md's `Current ticket path` field. Do not construct this path yourself — it may be under `tickets/` for original work or `review/round-N/tickets/` for review fixes.
-3. Read `coding-rules/INDEX.md` (in the dev-workflow skill's own folder — shipped defaults) and `plans/coding-rules/INDEX.md` if it exists in this project (project-specific overrides). From both, load only the rule files that apply to this ticket's tech stack — a `file` row is read directly, a `skill` row (e.g. `nestjs-service-style`) is invoked with the `Skill` tool, not just read. Do not read the full spec or grill output unless CONTEXT.md links to something specific needed.
+3. Read `coding-rules/INDEX.md` (in the gh-dev-workflow skill's own folder — shipped defaults) and `.gh-workflows/plans/coding-rules/INDEX.md` if it exists in this project (project-specific overrides). From both, load only the rule files that apply to this ticket's tech stack — a `file` row is read directly, a `skill` row (e.g. `nestjs-service-style`) is invoked with the `Skill` tool, not just read. Do not read the full spec or grill output unless CONTEXT.md links to something specific needed.
 4. Explore only the code relevant to this ticket, guided by its acceptance criteria. Do not explore the whole codebase.
 5. Implement using TDD, test-first where possible: write a failing test at the agreed seam (from the spec's testing decisions), make it pass, run typechecking after each meaningful change, run the single test file regularly, run the full test suite once at the end. Use the coding rules loaded above. If a rule conflicts with good judgment, note the conflict in this ticket's `PROGRESS/notes/` file (below) — do not silently break the rule.
 6. Do NOT run `git commit` or `git add` for a commit. The user commits.
@@ -34,6 +34,6 @@ If delegating, give the sub-agent the plan folder path and these instructions ve
 
 ### 3. Hand off
 
-If more tickets remain: "Ticket {N} done. Start a new session and run `/dev-workflow` to implement ticket {N+1}." Mention they can also ask to run the rest autonomously (remaining tickets and review) — see "Auto mode" in `SKILL.md`; it still stops at any review checkpoint (pass, or round 3+ failure).
+If more tickets remain: "Ticket {N} done. Start a new session and run `/gh-dev-workflow` to implement ticket {N+1}." Mention they can also ask to run the rest autonomously (remaining tickets and review) — see "Auto mode" in `SKILL.md`; it still stops at any review checkpoint (pass, or round 3+ failure).
 
-If all tickets are done: "All tickets implemented. Start a new session and run `/dev-workflow` to begin review (spec match + build/test)."
+If all tickets are done: "All tickets implemented. Start a new session and run `/gh-dev-workflow` to begin review (spec match + build/test)."

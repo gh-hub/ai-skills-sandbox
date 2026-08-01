@@ -1,9 +1,9 @@
 ---
-name: dev-workflow
-description: End-to-end development workflow. Entry point for all feature work. Reads PROGRESS/INDEX.md to resume from any phase. Phases in order: grill → spec → tickets → implement (per ticket) → review (per round — a spec-match + lint/build/test/e2e gate; auto-loops back to implement on failure). For a full standards/smell code-quality review, use the separate codereview-workflow skill.
+name: gh-dev-workflow
+description: End-to-end development workflow. Entry point for all feature work. Reads PROGRESS/INDEX.md to resume from any phase. Phases in order: grill → spec → tickets → implement (per ticket) → review (per round — a spec-match + lint/build/test/e2e gate; auto-loops back to implement on failure). For a full standards/smell code-quality review, use the separate gh-codereview-workflow-test skill.
 ---
 
-# dev-workflow
+# gh-dev-workflow
 
 Always start here. Every feature, every session.
 
@@ -14,14 +14,14 @@ If invoked without a plan argument, derive a short, slug-friendly name from what
 Delegate creating the plan folder: spawn a fresh `general-purpose` sub-agent (via the `Agent` tool, not `fork`) telling it to create
 
 ```
-plans/YYYYMMDD_HHMMSS-{name}/
+.gh-workflows/plans/YYYYMMDD_HHMMSS-{name}/
   INDEX.md
   CONTEXT.md
   PROGRESS/
     INDEX.md
 ```
 
-using the templates in `plan-structure.md`, with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `plans/` under a subdirectory; if `/dev-workflow` is invoked from inside a subdirectory, still resolve `plans/` against the repo root. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `phases/grill.md` and following it.
+using the templates in `plan-structure.md`, with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `.gh-workflows/plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `.gh-workflows/plans/` under a subdirectory; if `/gh-dev-workflow` is invoked from inside a subdirectory, still resolve `.gh-workflows/plans/` against the repo root. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `phases/grill.md` and following it.
 
 ## Resuming a plan
 
@@ -47,7 +47,7 @@ A round is `review/round-{N}`. On failure, it writes fix tickets and — for rou
 
 No external script — you (the current session) act as the conductor, spawning a fresh `general-purpose` sub-agent (via the `Agent` tool, not `fork` — it must NOT share your context) for each unattended unit of work, waiting for it to finish, then re-reading `PROGRESS/INDEX.md` to decide what's next. This keeps each ticket/phase's exploration and tool noise out of your own context instead of piling up across an entire plan.
 
-Triggered when the user asks to run the rest of a plan autonomously (or invokes `/dev-workflow --auto <plan>` directly). Requires grill to already be complete — grill is a live interview, and a sub-agent has no user to interview. If the current phase is `grill`, stop and say so.
+Triggered when the user asks to run the rest of a plan autonomously (or invokes `/gh-dev-workflow --auto <plan>` directly). Requires grill to already be complete — grill is a live interview, and a sub-agent has no user to interview. If the current phase is `grill`, stop and say so.
 
 The loop, from the conductor's own turn:
 
@@ -90,7 +90,7 @@ A `review` failure at round 1 or 2 needs no user input — it auto-loops back to
 
 ## Coding rules
 
-Before implement or review: read `coding-rules/INDEX.md` (in this skill's folder — the shipped defaults), and also `plans/coding-rules/INDEX.md` if it exists in the current project (project-specific additions/overrides). From both, load only the rule files relevant to the current ticket's tech stack — a `file` row is read directly, a `skill` row is invoked with the `Skill` tool. Do not load rules that don't apply.
+Before implement or review: read `coding-rules/INDEX.md` (in this skill's folder — the shipped defaults), and also `.gh-workflows/plans/coding-rules/INDEX.md` if it exists in the current project (project-specific additions/overrides). From both, load only the rule files relevant to the current ticket's tech stack — a `file` row is read directly, a `skill` row is invoked with the `Skill` tool. Do not load rules that don't apply.
 
 ## Reference
 

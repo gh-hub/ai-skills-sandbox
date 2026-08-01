@@ -1,6 +1,6 @@
 ---
-name: dev-workflow/spec
-description: Phase 2 of dev-workflow. Synthesizes grill output into a spec and saves it to the plan folder. No user interview — pure synthesis.
+name: gh-dev-workflow/spec
+description: Phase 2 of gh-dev-workflow. Synthesizes grill output into a spec and saves it to the plan folder. No user interview — pure synthesis.
 ---
 
 # Spec Phase
@@ -21,10 +21,10 @@ Nothing in this phase needs the user — it's pure synthesis of grill output. Pe
 
 Whoever does the work (you or the sub-agent) should:
 
-1. Read `plans/{folder}/CONTEXT.md`, `plans/{folder}/grill/requirements.md`, `plans/{folder}/grill/decisions.md`, `plans/{folder}/grill/glossary.md`, and any ADRs in `plans/{folder}/grill/`. Not ask the user questions — if something is genuinely ambiguous and cannot be resolved from the grill output, note it in the spec under "Further Notes" as an open question.
+1. Read `.gh-workflows/plans/{folder}/CONTEXT.md`, `.gh-workflows/plans/{folder}/grill/requirements.md`, `.gh-workflows/plans/{folder}/grill/decisions.md`, `.gh-workflows/plans/{folder}/grill/glossary.md`, and any ADRs in `.gh-workflows/plans/{folder}/grill/`. Not ask the user questions — if something is genuinely ambiguous and cannot be resolved from the grill output, note it in the spec under "Further Notes" as an open question.
 2. Explore the codebase (if one exists) to understand the current state of the area being changed. Use the domain glossary vocabulary throughout the spec.
 3. Identify test seams: sketch the seams at which the feature will be tested. Prefer existing seams. Use the highest seam possible. Propose new seams only if no existing one fits, and at the highest point available.
-4. Write the spec to `plans/{folder}/spec.md` using the template below.
+4. Write the spec to `.gh-workflows/plans/{folder}/spec.md` using the template below.
 5. Update `PROGRESS/INDEX.md` first: mark `spec` `done` with today's date in the Phases table, set current phase to `tickets`, point "Last session end-state" at `notes/spec.md`. Write `PROGRESS/notes/spec.md` with the session end-state. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
 
 If delegating, give the sub-agent the plan folder path and these instructions verbatim, plus: never run `git commit`/`git push`, never ask the user anything, and report back one line confirming what was written. Wait for it to finish before proceeding.
@@ -79,4 +79,4 @@ Open questions, risks, or things to revisit.
 
 ### 3. Hand off
 
-Tell the user: "Spec written. Start a new session and run `/dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).
+Tell the user: "Spec written. Start a new session and run `/gh-dev-workflow` to continue with the tickets phase." Mention they can also ask to run the rest autonomously (tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).

@@ -1,5 +1,5 @@
 ---
-name: dev-workflow/grilling
+name: gh-dev-workflow/grilling
 description: The grilling primitive. Relentless one-question-at-a-time interview used by the grill phase.
 ---
 

@@ -1,6 +1,6 @@
 ---
-name: dev-workflow/tickets
-description: Phase 3 of dev-workflow. Breaks the spec into tracer-bullet tickets saved to the plan folder. Includes a user approval checkpoint before implementation starts.
+name: gh-dev-workflow/tickets
+description: Phase 3 of gh-dev-workflow. Breaks the spec into tracer-bullet tickets saved to the plan folder. Includes a user approval checkpoint before implementation starts.
 ---
 
 # Tickets Phase
@@ -16,10 +16,10 @@ Break the spec into tracer-bullet tickets — vertical slices, each independentl
 Read `PROGRESS/INDEX.md` first. Confirm the current phase is `tickets`. If PROGRESS/INDEX.md says a different phase, stop and tell the user — do not proceed.
 
 Read:
-- `plans/{folder}/CONTEXT.md`
-- `plans/{folder}/spec.md`
+- `.gh-workflows/plans/{folder}/CONTEXT.md`
+- `.gh-workflows/plans/{folder}/spec.md`
 
-Explore the codebase if you haven't already. Ticket titles and descriptions must use the domain glossary vocabulary from `plans/{folder}/grill/glossary.md`.
+Explore the codebase if you haven't already. Ticket titles and descriptions must use the domain glossary vocabulary from `.gh-workflows/plans/{folder}/grill/glossary.md`.
 
 ### 2. Look for prefactor opportunities
 
@@ -54,7 +54,7 @@ Iterate until the user approves. This is the last user checkpoint before code is
 
 The approval checkpoint is over — nothing from here on needs the user, so per the Delegation discipline in `SKILL.md`, hand the write-up to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`) instead of writing the files yourself. Give it the approved ticket breakdown (title, blocked-by, what it delivers — for every ticket) and these instructions:
 
-Write to `plans/{folder}/tickets/` — one file per ticket, numbered from `01` in dependency order (blockers first):
+Write to `.gh-workflows/plans/{folder}/tickets/` — one file per ticket, numbered from `01` in dependency order (blockers first):
 
 ```markdown
 # {NN} — {Ticket title}
@@ -73,9 +73,9 @@ No file paths or code snippets unless a prototype produced a snippet that encode
 
 Then update the plan files:
 
-- `PROGRESS/INDEX.md`: mark `tickets` `done` with today's date in the Phases table, add one `implement/{NN}-{slug}` row per ticket (status `pending`), set current phase to `implement/01-{slug}`, set `Current ticket path` to `plans/{folder}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/tickets.md`.
+- `PROGRESS/INDEX.md`: mark `tickets` `done` with today's date in the Phases table, add one `implement/{NN}-{slug}` row per ticket (status `pending`), set current phase to `implement/01-{slug}`, set `Current ticket path` to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/tickets.md`.
 - `PROGRESS/notes/tickets.md`: the session end-state (ticket breakdown summary, what's next).
-- `CONTEXT.md`: add list of tickets with their numbers and slugs, set current phase to `implement`, set current ticket to `plans/{folder}/tickets/01-{slug}.md` (full path).
+- `CONTEXT.md`: add list of tickets with their numbers and slugs, set current phase to `implement`, set current ticket to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md` (full path).
 - `INDEX.md`: add link to tickets/, update status to `implement`.
 
 Tell it never to run `git commit`/`git push`, and to report back one line confirming what was written. Wait for it to finish before proceeding.
@@ -83,7 +83,7 @@ Tell it never to run `git commit`/`git push`, and to report back one line confir
 ### 6. Hand off
 
 Tell the user tickets are written and give them both ways to continue:
-- Manually, one ticket per session: "Start a new session and run `/dev-workflow` to begin implementing ticket 01."
+- Manually, one ticket per session: "Start a new session and run `/gh-dev-workflow` to begin implementing ticket 01."
 - Autonomously, across all remaining tickets and review: ask to run it that way — see "Auto mode" in `SKILL.md`. It still stops at any review checkpoint (pass, or round 3+ failure), and it never runs `git commit`/`git push` on its own.
 
 (This step doesn't apply under `--auto` — see "Auto mode" in `SKILL.md`, which replaces this whole hand-off with a one-line status instead.)

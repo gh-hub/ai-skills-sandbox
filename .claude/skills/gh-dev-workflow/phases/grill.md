@@ -1,6 +1,6 @@
 ---
-name: dev-workflow/grill
-description: Phase 1 of dev-workflow. Grills the user to extract all requirements and decisions, then saves structured output to the plan folder.
+name: gh-dev-workflow/grill
+description: Phase 1 of gh-dev-workflow. Grills the user to extract all requirements and decisions, then saves structured output to the plan folder.
 ---
 
 # Grill Phase
@@ -48,7 +48,7 @@ The interview is over — nothing from here on needs the user, so hand the write
 
 Give it a self-contained prompt with everything gathered in the interview — problem, actors, done criteria, boundaries, constraints, each confirmed decision (with reasoning and rejected alternatives), glossary terms, and which decisions have lasting architectural consequences — plus these instructions:
 
-Write to `plans/{folder}/grill/`:
+Write to `.gh-workflows/plans/{folder}/grill/`:
 
 - **requirements.md** — what we're building, written from the user's perspective. Not a spec, not a design. Just: what problem, what solution, what done looks like, what's out of scope.
 - **decisions.md** — every load-bearing decision made during the interview. Format:
@@ -74,4 +74,4 @@ Wait for the subagent to finish before proceeding.
 
 ### 5. Hand off
 
-Tell the user: "Grill complete. Start a new session and run `/dev-workflow` to continue with the spec phase." Mention they can also ask to run everything from here on autonomously (spec, tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).
+Tell the user: "Grill complete. Start a new session and run `/gh-dev-workflow` to continue with the spec phase." Mention they can also ask to run everything from here on autonomously (spec, tickets, each implement ticket, review) — see "Auto mode" in `SKILL.md`; it still stops at the ticket-list checkpoint and any review checkpoint (pass, or round 3+ failure).
