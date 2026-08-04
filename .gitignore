@@ -7,4 +7,3 @@ out/
 .env.local
 test-results/
 playwright-report/
-.gh-workflows/
