@@ -66,7 +66,12 @@ describe("Auth", () => {
         .send({ name: "Ada Lovelace", email, password: "secret1" })
         .expect(201);
 
-      expect(response.body).toEqual({ id: expect.any(String), name: "Ada Lovelace", email });
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        name: "Ada Lovelace",
+        email,
+        roles: [],
+      });
       const sessionCookie = extractSessionCookie(response);
       expect(sessionCookie).toContain("HttpOnly");
     });
@@ -112,7 +117,12 @@ describe("Auth", () => {
         .send({ email, password: "secret1" })
         .expect(200);
 
-      expect(response.body).toEqual({ id: expect.any(String), name: "Grace Hopper", email });
+      expect(response.body).toEqual({
+        id: expect.any(String),
+        name: "Grace Hopper",
+        email,
+        roles: [],
+      });
       extractSessionCookie(response);
     });
 
@@ -151,7 +161,9 @@ describe("Auth", () => {
         .set("Cookie", sessionCookie)
         .expect(200);
 
-      expect(response.body).toEqual({ user: { id: expect.any(String), name: "Hedy Lamarr", email } });
+      expect(response.body).toEqual({
+        user: { id: expect.any(String), name: "Hedy Lamarr", email, roles: [] },
+      });
     });
 
     it("returns an explicit no-session response when no cookie is present", async () => {

@@ -7,7 +7,9 @@ import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import request, { type Response } from "supertest";
+import { eq } from "drizzle-orm";
 import type { DbClient } from "../../db/db.module";
+import { roles, userRoles } from "../../db/schema";
 
 function extractSessionCookie(response: Response): string {
   const setCookieHeader: string[] = response.get("Set-Cookie") ?? [];
@@ -27,6 +29,7 @@ describe("Likes", () => {
   let migrationPool: Pool;
   let appPool: Pool;
   let app: INestApplication;
+  let db: DbClient;
 
   beforeAll(async () => {
     container = await new PostgreSqlContainer("postgres:16-alpine").start();
@@ -42,7 +45,8 @@ describe("Likes", () => {
     const { DATABASE_CONNECTION } = await import("../../db/db.module");
 
     const moduleRef = await Test.createTestingModule({ imports: [AppModule] }).compile();
-    appPool = moduleRef.get<DbClient>(DATABASE_CONNECTION).$client;
+    db = moduleRef.get<DbClient>(DATABASE_CONNECTION);
+    appPool = db.$client;
 
     app = moduleRef.createNestApplication();
     app.use(cookieParser());
@@ -232,11 +236,111 @@ describe("Likes", () => {
     });
   });
 
+  describe("attaching awards", () => {
+    async function createAward(title: string): Promise<{ id: string; title: string; icon: string | null }> {
+      const email = uniqueEmail("award-creator");
+      const signupResponse = await request(app.getHttpServer())
+        .post("/auth/signup")
+        .send({ name: "Award Creator", email, password: "secret1" })
+        .expect(201);
+      const [adminRole] = await db.select().from(roles).where(eq(roles.name, "ADMIN"));
+      await db.insert(userRoles).values({ userId: signupResponse.body.id, roleId: adminRole.id });
+      // Roles ride in the JWT and are only refreshed at login, so a fresh
+      // login is needed to pick up the role just granted above.
+      const loginResponse = await request(app.getHttpServer())
+        .post("/auth/login")
+        .send({ email, password: "secret1" })
+        .expect(200);
+      const sessionCookie = extractSessionCookie(loginResponse);
+
+      const awardResponse = await request(app.getHttpServer())
+        .post("/awards")
+        .set("Cookie", sessionCookie)
+        .send({ title, description: `${title} description`, icon: "🏅" })
+        .expect(201);
+
+      return {
+        id: awardResponse.body.id,
+        title: awardResponse.body.title,
+        icon: awardResponse.body.icon,
+      };
+    }
+
+    it("attaches a single award to a newly created like and includes it on the create response", async () => {
+      const award = await createAward(`Award A ${Date.now()}`);
+
+      const response = await request(app.getHttpServer())
+        .post("/likes")
+        .send({ story: "Story with one award", awardIds: [award.id] })
+        .expect(201);
+
+      expect(response.body.awards).toEqual([award]);
+    });
+
+    it("attaches multiple awards to a newly created like", async () => {
+      const awardA = await createAward(`Award B ${Date.now()}`);
+      const awardB = await createAward(`Award C ${Date.now()}`);
+
+      const response = await request(app.getHttpServer())
+        .post("/likes")
+        .send({ story: "Story with two awards", awardIds: [awardA.id, awardB.id] })
+        .expect(201);
+
+      const returnedIds = response.body.awards.map((award: { id: string }) => award.id).sort();
+      expect(returnedIds).toEqual([awardA.id, awardB.id].sort());
+    });
+
+    it("fails the whole request with 400 and creates no likes row when an awardId does not exist", async () => {
+      const before = await request(app.getHttpServer()).get("/likes/count").expect(200);
+      const unknownAwardId = "00000000-0000-0000-0000-000000000000";
+
+      await request(app.getHttpServer())
+        .post("/likes")
+        .send({ story: "Should not be created", awardIds: [unknownAwardId] })
+        .expect(400);
+
+      const after = await request(app.getHttpServer()).get("/likes/count").expect(200);
+      expect(after.body.count).toBe(before.body.count);
+    });
+
+    it("defaults to an empty awards array when awardIds is omitted", async () => {
+      const response = await request(app.getHttpServer()).post("/likes").send({}).expect(201);
+
+      expect(response.body.awards).toEqual([]);
+    });
+
+    it("defaults to an empty awards array when awardIds is an empty array", async () => {
+      const response = await request(app.getHttpServer())
+        .post("/likes")
+        .send({ awardIds: [] })
+        .expect(201);
+
+      expect(response.body.awards).toEqual([]);
+    });
+
+    it("surfaces attached awards on the corresponding feed item", async () => {
+      const award = await createAward(`Award D ${Date.now()}`);
+      const story = `Feed award story ${Date.now()}`;
+
+      await request(app.getHttpServer())
+        .post("/likes")
+        .send({ story, awardIds: [award.id] })
+        .expect(201);
+
+      const feedResponse = await request(app.getHttpServer()).get("/likes?limit=100").expect(200);
+      const feedItem = feedResponse.body.items.find(
+        (item: { story: string | null }) => item.story === story,
+      );
+
+      expect(feedItem.awards).toEqual([award]);
+    });
+  });
+
   describe("GET /likes/stats", () => {
     // Each test in this block owns the full table (truncated beforehand) since the
     // aggregate math depends on the entire table's contents, not just newly-added rows.
     beforeEach(async () => {
-      await appPool.query("TRUNCATE TABLE likes");
+      await appPool.query("TRUNCATE TABLE likes CASCADE");
     });
 
     it("computes correct aggregate math against a known seeded set", async () => {

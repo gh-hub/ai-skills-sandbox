@@ -4,7 +4,8 @@ import { useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
-import { AuthModal } from "@/components/auth-modal";
+import { AwardCheckboxList } from "@/components/award-checkbox-list";
+import { HeaderAuthControl } from "@/components/header-auth-control";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -19,8 +20,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { SparkMark } from "@/components/spark-mark";
 import { StatsBand } from "@/components/stats-band";
 import { StoryFeed } from "@/components/story-feed";
-import { UserAvatar } from "@/components/user-avatar";
-import { useLogout, useMe } from "@/lib/api-client/auth";
 import {
   useLikeCount,
   useLikesStats,
@@ -35,6 +34,7 @@ const storyFormSchema = z.object({
     .refine((value) => !value || value.trim() === "" || Number(value) >= 0, {
       message: "Hours saved must be zero or greater",
     }),
+  awardIds: z.array(z.string()).optional(),
 });
 
 type StoryFormValues = z.infer<typeof storyFormSchema>;
@@ -56,33 +56,6 @@ function renderLikeCount(likeCount: ReturnType<typeof useLikeCount>) {
   }
 
   return `${likeCount.data} likes`;
-}
-
-function HeaderAuthControl() {
-  const me = useMe();
-  const logout = useLogout();
-
-  if (me.isLoading || me.data === undefined) {
-    return null;
-  }
-
-  if (me.data === null) {
-    return <AuthModal />;
-  }
-
-  return (
-    <div className="flex items-center gap-2">
-      <UserAvatar name={me.data.name} size="sm" />
-      <Button
-        onClick={() => logout.mutate()}
-        disabled={logout.isPending}
-        variant="ghost"
-        size="sm"
-      >
-        Log out
-      </Button>
-    </div>
-  );
 }
 
 function formatHeroStatNumber(value: number): string {
@@ -125,7 +98,7 @@ export default function Home() {
 
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
-    defaultValues: { story: "", hoursSaved: "" },
+    defaultValues: { story: "", hoursSaved: "", awardIds: [] },
   });
 
   const handleStorySubmit = (values: StoryFormValues) => {
@@ -136,6 +109,7 @@ export default function Home() {
       {
         story: trimmedStory ? trimmedStory : undefined,
         hoursSaved: trimmedHours ? Number(trimmedHours) : undefined,
+        awardIds: values.awardIds && values.awardIds.length > 0 ? values.awardIds : undefined,
       },
       {
         onSuccess: () => {
@@ -275,6 +249,20 @@ export default function Home() {
                         <FormControl>
                           <Input type="number" {...field} />
                         </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="awardIds"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Awards (optional)</FormLabel>
+                        <AwardCheckboxList
+                          selectedIds={field.value ?? []}
+                          onChange={field.onChange}
+                        />
                         <FormMessage />
                       </FormItem>
                     )}

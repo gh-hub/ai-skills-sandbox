@@ -1,5 +1,5 @@
 import { ApiPropertyOptional } from "@nestjs/swagger";
-import { IsNumber, IsOptional, IsString } from "class-validator";
+import { IsArray, IsNumber, IsOptional, IsString, IsUUID } from "class-validator";
 import type { CreateLikeRequest } from "@thanks-claude/shared-types";
 
 export class CreateLikeDto implements CreateLikeRequest {
@@ -12,4 +12,10 @@ export class CreateLikeDto implements CreateLikeRequest {
   @IsOptional()
   @IsNumber()
   hoursSaved?: number;
+
+  @ApiPropertyOptional({ type: [String] })
+  @IsOptional()
+  @IsArray()
+  @IsUUID("4", { each: true })
+  awardIds?: string[];
 }

@@ -1,7 +1,0 @@
-# Tech Debt Log
-
-## Round 1 — 2026-07-25
-- [DEBT] Section labels ("Tips for saying thanks", "What's new") in the new hero box render as styled `<p>` elements, not `<h2>/<h3>`, so they're invisible to screen-reader heading navigation despite visually reading as section headers. (Standards) — moved to plans/tech-debt/20260725_150857-hero-section-labels-not-headings.md
-- [DEBT] `likes.repository.spec.ts` and `likes.service.spec.ts` (new unit tests) bundle multiple `expect()` calls per test rather than one assertion per test, and the repository spec asserts on Drizzle chain-method calls (implementation detail) rather than purely on observable output. (Standards) — moved to plans/tech-debt/20260725_150857-likes-unit-tests-multi-assertion.md
-- [DEBT] The e2e locator-anchoring fix (`/\d+ likes/` → `/^\d+ likes$/`) touched 4 files (`helpers.ts`, `like-flow.spec.ts`, `story-feed.spec.ts`, `story-form-flow.spec.ts`) beyond what the spec's Testing Decisions section named (only `smoke.spec.ts`) — necessary fallout from the new hero stats line, not unrelated feature work, but exceeds the letter of the spec. (Spec) — moved to plans/tech-debt/20260725_150857-e2e-locator-anchoring-scope.md
-- [DEBT] Decorative "traffic-light" dots in the hero title bar were not mentioned anywhere in the spec's Title bar description — defensible visual-fidelity discretion (aria-hidden, existing tokens only) but an unrequested addition worth a product sign-off note. (Spec) — moved to plans/tech-debt/20260725_150857-hero-decorative-dots-unrequested.md

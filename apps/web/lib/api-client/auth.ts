@@ -27,6 +27,31 @@ export function useMe() {
 
 type AuthUserDto = components["schemas"]["AuthUserDto"];
 
+const AWARD_MANAGEMENT_ROLES = ["ADMIN", "OPERATOR"];
+
+// Single source of truth for "can this visitor create/edit/delete awards?" —
+// mirrors the backend's RolesGuard role set exactly, so the UI never shows a
+// control that the API would then reject. Reused by create-award-section.tsx
+// and (from ticket 05/06 onward) awards-list.tsx's row-level icons.
+export function canManageAwards(user: AuthUserDto | null | undefined): boolean {
+  if (!user) {
+    return false;
+  }
+  return user.roles.some((role) => AWARD_MANAGEMENT_ROLES.includes(role));
+}
+
+const ADMIN_ROLE = "ADMIN";
+
+// Drives the header's conditional "Admin" link (ticket 06) and each admin
+// page's own render-nothing-when-unauthorized check (tickets 04/05/06) —
+// same shape as canManageAwards above.
+export function isAdmin(user: AuthUserDto | null | undefined): boolean {
+  if (!user) {
+    return false;
+  }
+  return user.roles.includes(ADMIN_ROLE);
+}
+
 export function useSignup() {
   const queryClient = useQueryClient();
 

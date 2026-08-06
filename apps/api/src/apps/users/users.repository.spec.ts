@@ -1,10 +1,10 @@
-import { users } from "../../db/schema";
+import { roles, userRoles, users } from "../../db/schema";
 import { UsersRepository } from "./users.repository";
 import type { DbClient } from "../../db/db.module";
 
 type ChainMock = Record<string, jest.Mock> & { then: PromiseLike<unknown>["then"] };
 
-const CHAIN_METHODS = ["select", "insert", "from", "where", "values", "returning"];
+const CHAIN_METHODS = ["select", "insert", "from", "where", "values", "returning", "innerJoin"];
 
 function createDbMock(result: unknown): ChainMock {
   const chain = {} as ChainMock;
@@ -105,6 +105,31 @@ describe("UsersRepository", () => {
       const result = await repository.findById("missing-id");
 
       expect(result).toBeNull();
+    });
+  });
+
+  describe("findRolesByUserId", () => {
+    it("issues a select().from(userRoles).innerJoin(roles).where(eq(userId, ...)) and returns just the role names", async () => {
+      const rows = [{ name: "ADMIN" }, { name: "OPERATOR" }];
+      const db = createDbMock(rows);
+      const repository = new UsersRepository(db as unknown as DbClient);
+
+      const result = await repository.findRolesByUserId("1");
+
+      expect(db.select).toHaveBeenCalledWith({ name: expect.anything() });
+      expect(db.from).toHaveBeenCalledWith(userRoles);
+      expect(db.innerJoin).toHaveBeenCalledWith(roles, expect.anything());
+      expect(db.where).toHaveBeenCalledWith(expect.anything());
+      expect(result).toEqual(["ADMIN", "OPERATOR"]);
+    });
+
+    it("returns an empty array when the user has no roles", async () => {
+      const db = createDbMock([]);
+      const repository = new UsersRepository(db as unknown as DbClient);
+
+      const result = await repository.findRolesByUserId("no-roles-user");
+
+      expect(result).toEqual([]);
     });
   });
 });

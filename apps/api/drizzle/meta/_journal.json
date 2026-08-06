@@ -22,6 +22,27 @@
       "when": 1784996471907,
       "tag": "0002_brainy_tusk",
       "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1785490934498,
+      "tag": "0003_nice_sir_ram",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1785517591413,
+      "tag": "0004_hot_mister_fear",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1785900000000,
+      "tag": "0005_roles_table",
+      "breakpoints": true
     }
   ]
 }

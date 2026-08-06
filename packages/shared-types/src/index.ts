@@ -5,6 +5,13 @@ export type HealthStatus = {
 export type CreateLikeRequest = {
   story?: string;
   hoursSaved?: number;
+  awardIds?: string[];
+};
+
+export type AwardSummary = {
+  id: string;
+  title: string;
+  icon: string | null;
 };
 
 export type Like = {
@@ -12,6 +19,7 @@ export type Like = {
   createdAt: string;
   story: string | null;
   hoursSaved: number | null;
+  awards: AwardSummary[];
 };
 
 export type LikeCount = {
@@ -54,8 +62,74 @@ export type AuthUser = {
   id: string;
   name: string;
   email: string;
+  roles: string[];
 };
 
 export type MeResponse = {
   user: AuthUser | null;
+};
+
+export type Award = {
+  id: string;
+  createdAt: string;
+  title: string;
+  description: string;
+  icon: string | null;
+  givenCount: number;
+};
+
+export type CreateAwardRequest = {
+  title: string;
+  description: string;
+  icon?: string;
+};
+
+export type UpdateAwardRequest = {
+  title?: string;
+  description?: string;
+  icon?: string;
+};
+
+export type Role = {
+  id: string;
+  name: string;
+  isBuiltIn: boolean;
+};
+
+export type CreateRoleRequest = {
+  name: string;
+};
+
+export type RoleAffectedUser = {
+  name: string;
+  email: string;
+};
+
+export type RoleInUseResponse = {
+  message: string;
+  affectedUsers: RoleAffectedUser[];
+};
+
+export type UserRoleSummary = {
+  id: string;
+  name: string;
+};
+
+export type UserListItem = {
+  id: string;
+  name: string;
+  email: string;
+  roles: UserRoleSummary[];
+};
+
+export type UsersPage = {
+  items: UserListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type GrantUserRoleRequest = {
+  roleId: string;
 };

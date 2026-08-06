@@ -1,5 +1,6 @@
 import { ApiProperty } from "@nestjs/swagger";
 import type { Like, LikeCount, LikeFeedItem } from "@thanks-claude/shared-types";
+import { AwardSummaryDto } from "../../awards/dto/award-summary.dto";
 
 export class LikeDto implements Like {
   @ApiProperty()
@@ -13,6 +14,9 @@ export class LikeDto implements Like {
 
   @ApiProperty({ nullable: true, type: Number })
   hoursSaved!: number | null;
+
+  @ApiProperty({ type: [AwardSummaryDto] })
+  awards!: AwardSummaryDto[];
 }
 
 export class LikeCountDto implements LikeCount {
