@@ -1,9 +1,10 @@
 "use client";
 
+import Link from "next/link";
 import { AuthModal } from "@/components/auth-modal";
 import { Button } from "@/components/ui/button";
 import { UserAvatar } from "@/components/user-avatar";
-import { useLogout, useMe } from "@/lib/api-client/auth";
+import { isAdmin, useLogout, useMe } from "@/lib/api-client/auth";
 
 export function HeaderAuthControl() {
   const me = useMe();
@@ -20,6 +21,14 @@ export function HeaderAuthControl() {
   return (
     <div className="flex items-center gap-2">
       <UserAvatar name={me.data.name} size="sm" />
+      {isAdmin(me.data) && (
+        <Link
+          href="/admin"
+          className="text-sm font-medium text-muted-foreground hover:text-foreground"
+        >
+          Admin
+        </Link>
+      )}
       {me.data.roles.length > 0 && (
         <ul className="flex gap-1" aria-label="Roles">
           {me.data.roles.map((role) => (

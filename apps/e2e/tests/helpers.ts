@@ -29,7 +29,7 @@ export function grantRole(email: string, role: "ADMIN" | "OPERATOR"): void {
       "-d",
       POSTGRES_DB,
       "-c",
-      `INSERT INTO user_roles (user_id, role) SELECT id, '${role}' FROM users WHERE email = '${email}';`,
+      `INSERT INTO user_roles (user_id, role_id) SELECT users.id, roles.id FROM users, roles WHERE users.email = '${email}' AND roles.name = '${role}';`,
     ],
     { cwd: REPO_ROOT, env: COMPOSE_ENV, stdio: "pipe" }
   );

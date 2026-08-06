@@ -7,8 +7,9 @@ import { Test } from "@nestjs/testing";
 import { INestApplication, ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import request, { type Response } from "supertest";
+import { eq } from "drizzle-orm";
 import type { DbClient } from "../../db/db.module";
-import { userRoles } from "../../db/schema";
+import { roles, userRoles } from "../../db/schema";
 
 function extractSessionCookie(response: Response): string {
   const setCookieHeader: string[] = response.get("Set-Cookie") ?? [];
@@ -242,7 +243,8 @@ describe("Likes", () => {
         .post("/auth/signup")
         .send({ name: "Award Creator", email, password: "secret1" })
         .expect(201);
-      await db.insert(userRoles).values({ userId: signupResponse.body.id, role: "ADMIN" });
+      const [adminRole] = await db.select().from(roles).where(eq(roles.name, "ADMIN"));
+      await db.insert(userRoles).values({ userId: signupResponse.body.id, roleId: adminRole.id });
       // Roles ride in the JWT and are only refreshed at login, so a fresh
       // login is needed to pick up the role just granted above.
       const loginResponse = await request(app.getHttpServer())

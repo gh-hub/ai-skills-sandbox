@@ -1,6 +1,4 @@
-import { pgTable, pgEnum, uuid, timestamp, text, numeric, unique } from "drizzle-orm/pg-core";
-
-export const roleEnum = pgEnum("role", ["ADMIN", "OPERATOR"]);
+import { pgTable, uuid, timestamp, text, numeric, unique, boolean } from "drizzle-orm/pg-core";
 
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
@@ -36,6 +34,12 @@ export const likeAwards = pgTable("like_awards", {
     .references(() => awards.id, { onDelete: "cascade" }),
 });
 
+export const roles = pgTable("roles", {
+  id: uuid("id").primaryKey().defaultRandom(),
+  name: text("name").notNull().unique(),
+  isBuiltIn: boolean("is_built_in").notNull(),
+});
+
 export const userRoles = pgTable(
   "user_roles",
   {
@@ -43,8 +47,10 @@ export const userRoles = pgTable(
     userId: uuid("user_id")
       .notNull()
       .references(() => users.id, { onDelete: "cascade" }),
-    role: roleEnum("role").notNull(),
+    roleId: uuid("role_id")
+      .notNull()
+      .references(() => roles.id, { onDelete: "cascade" }),
     createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
   },
-  (table) => [unique().on(table.userId, table.role)],
+  (table) => [unique().on(table.userId, table.roleId)],
 );

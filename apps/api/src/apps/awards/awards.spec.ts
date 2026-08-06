@@ -9,7 +9,7 @@ import { INestApplication, ValidationPipe } from "@nestjs/common";
 import cookieParser from "cookie-parser";
 import request, { type Response } from "supertest";
 import type { DbClient } from "../../db/db.module";
-import { likeAwards, likes, userRoles } from "../../db/schema";
+import { likeAwards, likes, roles, userRoles } from "../../db/schema";
 
 function extractSessionCookie(response: Response): string {
   const setCookieHeader: string[] = response.get("Set-Cookie") ?? [];
@@ -37,7 +37,8 @@ describe("Awards", () => {
   let sessionCookie: string;
 
   async function grantRole(userId: string, role: "ADMIN" | "OPERATOR"): Promise<void> {
-    await db.insert(userRoles).values({ userId, role });
+    const [roleRow] = await db.select().from(roles).where(eq(roles.name, role));
+    await db.insert(userRoles).values({ userId, roleId: roleRow.id });
   }
 
   async function signupUser(label: string): Promise<{ id: string; email: string }> {

@@ -89,3 +89,47 @@ export type UpdateAwardRequest = {
   description?: string;
   icon?: string;
 };
+
+export type Role = {
+  id: string;
+  name: string;
+  isBuiltIn: boolean;
+};
+
+export type CreateRoleRequest = {
+  name: string;
+};
+
+export type RoleAffectedUser = {
+  name: string;
+  email: string;
+};
+
+export type RoleInUseResponse = {
+  message: string;
+  affectedUsers: RoleAffectedUser[];
+};
+
+export type UserRoleSummary = {
+  id: string;
+  name: string;
+};
+
+export type UserListItem = {
+  id: string;
+  name: string;
+  email: string;
+  roles: UserRoleSummary[];
+};
+
+export type UsersPage = {
+  items: UserListItem[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+};
+
+export type GrantUserRoleRequest = {
+  roleId: string;
+};

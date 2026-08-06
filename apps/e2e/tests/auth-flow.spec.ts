@@ -168,6 +168,12 @@ test("a user granted ADMIN sees an ADMIN badge next to their name in the header"
   await loginToRefreshSession(page, email, PASSWORD);
   await page.reload();
 
-  await expect(page.getByRole("list", { name: "Roles" })).toBeVisible();
-  await expect(page.getByText("ADMIN")).toBeVisible();
+  // Scoped to the Roles list, not a page-wide getByText("ADMIN") — since
+  // ticket 06 added a header "Admin" link (visible to this same ADMIN user),
+  // an unscoped query is a case-insensitive substring match against both the
+  // link's "Admin" text and this role badge's "ADMIN" text, which is a
+  // strict-mode violation.
+  const rolesList = page.getByRole("list", { name: "Roles" });
+  await expect(rolesList).toBeVisible();
+  await expect(rolesList.getByText("ADMIN")).toBeVisible();
 });

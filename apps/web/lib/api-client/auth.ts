@@ -40,6 +40,18 @@ export function canManageAwards(user: AuthUserDto | null | undefined): boolean {
   return user.roles.some((role) => AWARD_MANAGEMENT_ROLES.includes(role));
 }
 
+const ADMIN_ROLE = "ADMIN";
+
+// Drives the header's conditional "Admin" link (ticket 06) and each admin
+// page's own render-nothing-when-unauthorized check (tickets 04/05/06) —
+// same shape as canManageAwards above.
+export function isAdmin(user: AuthUserDto | null | undefined): boolean {
+  if (!user) {
+    return false;
+  }
+  return user.roles.includes(ADMIN_ROLE);
+}
+
 export function useSignup() {
   const queryClient = useQueryClient();
 
