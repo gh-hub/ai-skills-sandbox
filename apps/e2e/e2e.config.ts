@@ -6,7 +6,7 @@
 import path from "node:path";
 import { config as loadEnvFile } from "dotenv";
 
-loadEnvFile({ path: path.resolve(__dirname, ".env.e2e") });
+loadEnvFile({ path: path.resolve(__dirname, ".env.e2e"), override: true });
 
 export const PROJECT_NAME = process.env.E2E_COMPOSE_PROJECT ?? "thanks-claude-e2e";
 export const WEB_PORT = process.env.WEB_PORT ?? "8082";
