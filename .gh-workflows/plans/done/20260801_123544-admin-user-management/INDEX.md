@@ -4,7 +4,7 @@
 An admin-only user/role management UI and API: an `/admin` hub with `/admin/users` (paginated, searchable user list with role grant/revoke) and `/admin/roles` (list/create/delete roles), gated to ADMIN only.
 
 ## Status
-Current phase: implement (tickets phase complete, starting 01-roles-schema-migration)
+complete
 
 ## Links
 - [PROGRESS/](PROGRESS/INDEX.md)

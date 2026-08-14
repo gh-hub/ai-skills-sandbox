@@ -37,6 +37,7 @@ What this plan is and links to everything inside it. Written at plan creation, u
 One sentence.
 
 ## Status
+Workflow: full
 Current phase: grill
 
 ## Links
@@ -116,6 +117,9 @@ PROGRESS/
 ```markdown
 # Progress: {plan name}
 
+## Workflow
+full
+
 ## Current phase
 grill
 
@@ -142,6 +146,8 @@ Link to whichever `notes/` file was written most recently — no prose duplicate
 `Current ticket path` holds the exact file path of the ticket being implemented (e.g. `.gh-workflows/plans/{folder}/tickets/01-auth.md` or `.gh-workflows/plans/{folder}/review/round-1/tickets/01-fix.md`). It is the authoritative source for which file implement.md loads. Updated by tickets.md and review.md whenever a new ticket becomes current; cleared when all tickets are done.
 
 `Base branch` is set exactly once, by `implement.md` during ticket `01` (`git rev-parse --abbrev-ref HEAD`), and never touched again — it's what every review round diffs against (`git diff {base-branch}...HEAD`). If it's already set when a session reads this file, leave it alone.
+
+`Workflow` records which skill is driving this plan: `full` for a plan created by (or escalated into) `gh-dev-workflow`, `quick` for one still owned by the separate `gh-dev-quick-workflow` skill. Set once at plan creation by whichever skill creates the folder, and flipped from `quick` to `full` exactly once — when a quick-plan escalates (see that skill's own docs). Never flips back. This is what lets either skill's "resuming a plan" step tell, without guessing from phase-table shape, whether a given plan folder is still its own to run.
 
 The `Phases` table is the single source of truth for both the checklist (what used to be `- [x] phase (date)` lines) and review-round outcomes (what used to be a separate `## Review rounds` section) — a review round's `Status` column holds `PASS`/`FAIL` directly, so there's no second place recording the same fact.
 
