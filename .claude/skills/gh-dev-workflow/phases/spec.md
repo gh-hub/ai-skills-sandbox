@@ -15,6 +15,8 @@ Turn the grill output into a structured spec. No interview — synthesize what t
 
 Read `PROGRESS/INDEX.md` first. Confirm the current phase is `spec`. If PROGRESS/INDEX.md says a different phase, stop and tell the user — do not proceed.
 
+If the `spec` row's `Started` column is still empty, stamp it now with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`) and set its status to `in-progress` — a direct quick edit, not delegated. Leave it untouched if already set (a resumed session).
+
 ### 2. Delegate synthesis and write-up
 
 Nothing in this phase needs the user — it's pure synthesis of grill output. Per the Delegation discipline in `SKILL.md`: if you're running this phase live (in conversation with the user), hand the rest of this phase to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`). If you were yourself spawned as a sub-agent to run this whole phase (e.g. under auto mode), just do the following steps directly instead of spawning yet another sub-agent.
@@ -30,7 +32,7 @@ Whoever does the work (you or the sub-agent) should:
    - Slice the remaining feature into vertical slices: each a narrow but complete path through every layer (schema, API, UI, tests), independently demoable, sized to fit one implement session. Give each ticket its blocking edges.
    - Wide mechanical refactors (rename a column, retype a shared symbol) use expand-contract, one batch per ticket, per the "Wide refactors are the exception" note in `tickets.md`.
    - For each ticket, capture: title, blocked-by, and what it delivers end-to-end. This is a **draft only** — do not write anything under `.gh-workflows/plans/{folder}/tickets/`, and do not add ticket rows to `PROGRESS/INDEX.md`. That still happens in the tickets phase, after user approval.
-6. Update `PROGRESS/INDEX.md` first: mark `spec` `done` with today's date in the Phases table, set current phase to `tickets`, point "Last session end-state" at `notes/spec.md`. Write `PROGRESS/notes/spec.md` with the session end-state, including a `## Draft ticket breakdown` section listing the drafted tickets (title / blocked-by / what it delivers), so the breakdown survives the session boundary between spec and tickets phases. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
+6. Update `PROGRESS/INDEX.md` first: mark `spec` `done` in the Phases table, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`), set current phase to `tickets`, point "Last session end-state" at `notes/spec.md`. Write `PROGRESS/notes/spec.md` with the session end-state, including a `## Draft ticket breakdown` section listing the drafted tickets (title / blocked-by / what it delivers), so the breakdown survives the session boundary between spec and tickets phases. Then update `CONTEXT.md`: add link to spec.md, set current phase to `tickets`. Then update `INDEX.md`: add link to spec.md, update status to `tickets`.
 
 If delegating, give the sub-agent the plan folder path and these instructions verbatim — including the draft-ticket-breakdown step and the `PROGRESS/notes/spec.md` section requirement — plus: never run `git commit`/`git push`, never ask the user anything, and report back one line confirming what was written. Wait for it to finish before proceeding.
 

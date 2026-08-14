@@ -9,6 +9,14 @@ function feedSection(page: Page) {
   return page.getByRole("region", { name: "Story feed" });
 }
 
+// Scoped to the global SiteHeader (mounted in layout.tsx, present on every
+// route): the home page shows two simultaneous HeaderAuthControl copies (the
+// hero card's own, unaffected by this ticket, and the fixed global header's),
+// so a bare role query for "Login"/"Log out" is a strict-mode violation.
+function siteHeader(page: Page) {
+  return page.getByTestId("site-header");
+}
+
 test("a story submitted while logged in shows the attributing user's initials avatar and name in the feed", async ({
   page,
 }) => {
@@ -18,14 +26,20 @@ test("a story submitted while logged in shows the attributing user's initials av
   const storyText = `Claude helped me a lot. (${marker})`;
 
   await page.goto("/");
+  // The global header's HeaderAuthControl only fades in on home once the hero
+  // card has fully scrolled past (see home-header-scroll.spec.ts) — scroll
+  // past it so this click reaches the global header's copy.
+  await page.locator("#stats-and-feed").scrollIntoViewIfNeeded();
 
-  await page.getByRole("button", { name: "Login" }).click();
+  await siteHeader(page).getByRole("button", { name: "Login" }).click();
   await page.getByRole("tab", { name: "Create account" }).click();
   await page.getByLabel("Name").fill(name);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill("hunter22");
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Log out" })
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Share a story" }).click();
   await page.getByLabel("Story (optional)").fill(storyText);
@@ -47,7 +61,14 @@ test("a story submitted while logged out shows an anonymous icon in the feed, wi
   const storyText = `Claude helped me a lot. (${marker})`;
 
   await page.goto("/");
-  await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
+  // The global header's HeaderAuthControl only fades in on home once the hero
+  // card has fully scrolled past (see home-header-scroll.spec.ts) — scroll
+  // past it so this assertion targets the global header's copy.
+  await page.locator("#stats-and-feed").scrollIntoViewIfNeeded();
+
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Login" })
+  ).toBeVisible();
 
   await page.getByRole("button", { name: "Share a story" }).click();
   await page.getByLabel("Story (optional)").fill(storyText);

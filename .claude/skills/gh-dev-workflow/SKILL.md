@@ -1,6 +1,6 @@
 ---
 name: gh-dev-workflow
-description: End-to-end development workflow. Entry point for all feature work. Reads PROGRESS/INDEX.md to resume from any phase. Phases in order: grill → spec → tickets → implement (per ticket) → review (per round — a spec-match + security + lint/build/test/e2e gate; auto-loops back to implement on failure). For a full standards/smell code-quality review, use the separate gh-codereview-workflow-test skill.
+description: End-to-end development workflow. Entry point for feature work that needs more than 1-2 tickets. Reads PROGRESS/INDEX.md to resume from any phase. Phases in order: grill → spec → tickets → implement (per ticket) → review (per round — a spec-match + security + lint/build/test/e2e gate; auto-loops back to implement on failure). For a full standards/smell code-quality review, use the separate gh-codereview-workflow-test skill. For a small, 1-2 ticket task, use gh-dev-quick-workflow instead — it escalates here automatically if the task turns out bigger.
 ---
 
 # gh-dev-workflow
@@ -21,15 +21,15 @@ Delegate creating the plan folder: spawn a fresh `general-purpose` sub-agent (vi
     INDEX.md
 ```
 
-using the templates in `plan-structure.md`, with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `.gh-workflows/plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `.gh-workflows/plans/` under a subdirectory; if `/gh-dev-workflow` is invoked from inside a subdirectory, still resolve `.gh-workflows/plans/` against the repo root. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `phases/grill.md` and following it.
+using the templates in `plan-structure.md` (`Workflow: full` in both `INDEX.md` and `PROGRESS/INDEX.md`), with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `.gh-workflows/plans/` always lives at the project's repository root — even in a monorepo where the feature work itself touches a subdirectory (e.g. `apps/web/`, `apps/api/`). Never create a nested `.gh-workflows/plans/` under a subdirectory; if `/gh-dev-workflow` is invoked from inside a subdirectory, still resolve `.gh-workflows/plans/` against the repo root. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `phases/grill.md` and following it.
 
 ## Resuming a plan
 
 If a plan name or path is given as an argument, read that plan's `PROGRESS/INDEX.md` and continue from the current phase.
 
-If no argument is given and multiple plans exist, list them and ask which to resume.
+If no argument is given and multiple plans exist, list them and ask which to resume — read each candidate's `PROGRESS/INDEX.md` `Workflow` field and show it alongside the plan name so the user can tell quick plans from full ones at a glance.
 
-Once the plan is identified, read `PROGRESS/INDEX.md`, determine the current phase, read the matching phase file from `phases/`, and execute it. For a phase string with a suffix (`implement/{slug}`, `review/round-{N}`), the file is picked from the prefix before the slash — see Phase sequence below.
+Once the plan is identified, read `PROGRESS/INDEX.md` and check `Workflow`. If it says `quick`, this plan is still owned by `gh-dev-quick-workflow` and hasn't escalated — stop and tell the user: "This plan is running under `gh-dev-quick-workflow` — run `/gh-dev-quick-workflow` to continue it (it'll offer to escalate here if it turns out to need more than 1-2 tickets)." Do not proceed. If it says `full` (or the field is absent, for plans created before this field existed), determine the current phase, read the matching phase file from `phases/`, and execute it. For a phase string with a suffix (`implement/{slug}`, `review/round-{N}`), the file is picked from the prefix before the slash — see Phase sequence below.
 
 ## Phase sequence
 

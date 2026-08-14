@@ -15,6 +15,8 @@ Confirm three things about everything implemented so far: it does what `spec.md`
 
 Read `.gh-workflows/plans/{folder}/PROGRESS/INDEX.md` first — source of truth. Confirm the current phase is `review/round-{N}` (N=1 the first time a plan enters review). If it is not, stop and tell the user — do not proceed.
 
+If the Phases table has no `review/round-{N}` row yet (rounds 2+ only get their row added lazily, on first entry), add it now with status `in-progress` and `Started` stamped to the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`). If the row already exists but `Started` is still empty, stamp it the same way and set status to `in-progress`. Either way, a direct quick edit, not delegated. Leave it untouched if `Started` is already set (a resumed session).
+
 Read `.gh-workflows/plans/{folder}/CONTEXT.md` and `.gh-workflows/plans/{folder}/spec.md`.
 
 ### 2. Pin the diff
@@ -75,7 +77,7 @@ Delegate the write-up (per the Delegation discipline in `SKILL.md`, this phase a
 1. Write `.gh-workflows/plans/{folder}/review/round-{N}/findings.md` — the spec sub-agent's findings verbatim under a "Spec match" heading, the security sub-agent's findings verbatim under a "Security" heading, plus a checklist of every step-4 check that ran (lint / build / unit-integration / e2e) with pass/fail and the failure output for any that failed. Mark any check that failed once but passed on rerun as `flaky` in this checklist, not `fail`.
 2. Write one fix ticket per finding (spec and security alike) to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/`, numbered from `01`, same format as `phases/tickets.md`. Tag each ticket's title with its source (`[spec]` / `[security]`) so a security fix isn't mistaken for a feature gap.
 3. Update `PROGRESS/INDEX.md` first, then `CONTEXT.md` to match:
-   - `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `FAIL` with today's date in the Phases table, set current phase to `implement`, set `Current ticket path` to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/review-round-{N}.md`.
+   - `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `FAIL` in the Phases table, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`), set current phase to `implement`, set `Current ticket path` to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/review-round-{N}.md`.
    - `PROGRESS/notes/review-round-{N}.md`: the findings summary (one-line-per-check gate result plus the spec-match gaps and the security findings), linking to `review/round-{N}/findings.md` for full detail.
    - `CONTEXT.md`: note round `{N}` failed (one line, link to `findings.md`), set current phase to `implement`, set current ticket to the same path.
    - `INDEX.md`: add link to `review/round-{N}/findings.md`, update status to `fixing`.
@@ -103,7 +105,7 @@ Reply "done" to archive this plan.
 ```
 
 Once the user replies "done", delegate the write-up to a fresh `general-purpose` sub-agent (`model: haiku` — purely mechanical bookkeeping and a folder move, no decisions):
-1. `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `PASS` with today's date, set current phase to `(complete)`, point "Last session end-state" at `notes/review-round-{N}.md`.
+1. `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `PASS`, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`), set current phase to `(complete)`, point "Last session end-state" at `notes/review-round-{N}.md`.
 2. `PROGRESS/notes/review-round-{N}.md`: confirm spec-match clean, no security findings, and the full gate green, with a one-line summary of what passed. If any check in step 4 was flaky (failed once, passed on rerun), note that here too.
 3. `CONTEXT.md`: add "Plan complete".
 4. `INDEX.md`: update status to `complete`.

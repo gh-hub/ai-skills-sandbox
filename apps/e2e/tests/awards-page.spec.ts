@@ -25,12 +25,15 @@ function awardsSection(page: Page) {
   return page.getByRole("region", { name: "Awards list" });
 }
 
-// The awards page has no header auth control (that only lives on the home
-// page) — the login/signup dialog is opened from `LoginPrompt` instead, and
-// a successful signup is signalled by the dialog closing itself.
+// The awards page's own login/signup flow is opened from the page content's
+// `LoginPrompt`, not the global header — since ticket 01, the fixed
+// `SiteHeader` (mounted in layout.tsx) also renders its own "Login" button on
+// every route, so this scopes to `main` (the page content) to exercise
+// `LoginPrompt` specifically and avoid a strict-mode match against both
+// buttons. A successful signup is signalled by the dialog closing itself.
 async function signUp(page: Page, name: string, email: string): Promise<void> {
   await page.goto("/awards");
-  await page.getByRole("button", { name: "Login" }).click();
+  await page.locator("main").getByRole("button", { name: "Login" }).click();
   await page.getByRole("tab", { name: "Create account" }).click();
   await page.getByLabel("Name").fill(name);
   await page.getByLabel("Email").fill(email);
@@ -61,10 +64,18 @@ test("an anonymous visitor sees a login prompt instead of the create-award form"
   await page.goto("/awards");
 
   await expect(page.getByText("Log in to create an award.")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Login" })).toBeVisible();
+  await expect(
+    page.locator("main").getByRole("button", { name: "Login" })
+  ).toBeVisible();
   await expect(
     page.getByRole("heading", { name: "Create an award" })
   ).not.toBeVisible();
+
+  // Ticket 01: the fixed global header now also shows its own Login control
+  // immediately on /awards, with no scroll interaction required.
+  await expect(
+    page.getByTestId("site-header").getByRole("button", { name: "Login" })
+  ).toBeVisible();
 });
 
 test("a logged-in user with no role sees neither the create form nor edit/delete icons", async ({
@@ -100,6 +111,13 @@ test("a user granted ADMIN sees the create form and edit/delete icons, and can c
 
   await expect(
     page.getByRole("heading", { name: "Create an award" })
+  ).toBeVisible();
+
+  // Ticket 01: the fixed global header shows HeaderAuthControl immediately
+  // on /awards, so a logged-in user sees "Log out" there too, no scroll
+  // interaction required.
+  await expect(
+    page.getByTestId("site-header").getByRole("button", { name: "Log out" })
   ).toBeVisible();
 
   const [award] = await getAwards(page);

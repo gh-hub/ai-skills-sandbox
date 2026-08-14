@@ -13,18 +13,34 @@ function uniqueEmail(prefix: string): string {
   return `admin-roles-${prefix}-${randomUUID()}@example.com`;
 }
 
-// The admin pages have no header auth control of their own (they render
-// nothing at all when unauthorized) — sign-up/login only ever happens from
-// the home page, exactly like awards-page.spec.ts's own signUp helper.
+// The admin pages render no page content of their own for an unauthorized
+// visitor, but the fixed global `SiteHeader` (mounted in layout.tsx) is
+// present on every route regardless — sign-up/login still happens from the
+// home page, exactly like awards-page.spec.ts's own signUp helper. Scoped to
+// the global header throughout: the home page shows two simultaneous
+// HeaderAuthControl copies (the hero card's own, unaffected by this ticket,
+// and the fixed global header's) — a bare role query would be a strict-mode
+// violation.
+function siteHeader(page: Page) {
+  return page.getByTestId("site-header");
+}
+
+// The global header's HeaderAuthControl only fades in on home once the hero
+// card has fully scrolled past (see home-header-scroll.spec.ts) — scroll past
+// it up front so sign-up can click the global header's copy, independent of
+// scroll position.
 async function signUp(page: Page, name: string, email: string): Promise<void> {
   await page.goto("/");
-  await page.getByRole("button", { name: "Login" }).click();
+  await page.locator("#stats-and-feed").scrollIntoViewIfNeeded();
+  await siteHeader(page).getByRole("button", { name: "Login" }).click();
   await page.getByRole("tab", { name: "Create account" }).click();
   await page.getByLabel("Name").fill(name);
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(PASSWORD);
   await page.getByRole("button", { name: "Create account" }).click();
-  await expect(page.getByRole("button", { name: "Log out" })).toBeVisible();
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Log out" })
+  ).toBeVisible();
 }
 
 async function loginAsAdmin(page: Page): Promise<void> {
@@ -66,7 +82,13 @@ test("an anonymous visitor sees nothing at /admin/roles", async ({ page }) => {
   await page.goto("/admin/roles");
 
   await expect(page.getByRole("heading", { name: "Roles" })).not.toBeVisible();
-  await expect(page.getByRole("button", { name: "Login" })).not.toBeVisible();
+
+  // Ticket 01: /admin/roles renders no page content for an anonymous
+  // visitor, but the fixed global header still shows its Login control
+  // immediately, no scroll interaction required — new behavior vs. today.
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Login" })
+  ).toBeVisible();
 });
 
 test("a logged-in user with no role sees nothing at /admin/roles", async ({
@@ -95,13 +117,20 @@ test("an admin sees the built-in roles with a Built-in indicator and no delete c
 }) => {
   await loginAsAdmin(page);
 
-  const adminRow = page.locator("li", { hasText: "ADMIN" }).first();
+  // Scoped to the Roles list region, not a page-wide `li` query — since
+  // ticket 01, the global header's own `HeaderAuthControl` also renders the
+  // logged-in admin's role badges as `<li>ADMIN</li>` (see
+  // header-auth-control.tsx), which otherwise matches first and lacks the
+  // "Built-in" text this test is asserting on.
+  const adminRow = rolesSection(page).locator("li", { hasText: "ADMIN" }).first();
   await expect(adminRow).toContainText("Built-in");
   await expect(
     adminRow.getByRole("button", { name: "Delete ADMIN" })
   ).toHaveCount(0);
 
-  const operatorRow = page.locator("li", { hasText: "OPERATOR" }).first();
+  const operatorRow = rolesSection(page)
+    .locator("li", { hasText: "OPERATOR" })
+    .first();
   await expect(operatorRow).toContainText("Built-in");
   await expect(
     operatorRow.getByRole("button", { name: "Delete OPERATOR" })
