@@ -6,7 +6,6 @@ import { useForm } from "react-hook-form";
 import { z } from "zod";
 import { AwardCheckboxList } from "@/components/award-checkbox-list";
 import { HeaderAuthControl } from "@/components/header-auth-control";
-import { StickyHeader, useIsScrolledPast } from "@/components/sticky-header";
 import { Button } from "@/components/ui/button";
 import {
   Form,
@@ -26,6 +25,7 @@ import {
   useLikesStats,
   useSubmitLike,
 } from "@/lib/api-client/likes";
+import { useReportHeroVisibility } from "@/lib/hero-visibility-context";
 
 const storyFormSchema = z.object({
   story: z.string().optional(),
@@ -97,7 +97,7 @@ export default function Home() {
   const likeSubmit = useSubmitLike();
   const storySubmit = useSubmitLike();
   const heroStats = useLikesStats();
-  const isScrolledPast = useIsScrolledPast(heroRef);
+  useReportHeroVisibility(heroRef);
 
   const form = useForm<StoryFormValues>({
     resolver: zodResolver(storyFormSchema),
@@ -125,7 +125,6 @@ export default function Home() {
 
   return (
     <div className="flex min-h-screen flex-col">
-      <StickyHeader visible={isScrolledPast} />
       <main className="flex-1">
         <section className="mx-auto max-w-3xl px-6 pt-20 sm:pt-28">
           <div

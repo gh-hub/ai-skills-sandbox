@@ -1,0 +1,14 @@
+# 01 — [spec] Fix brief login-control flash on home-page load
+
+**What to build:** On `/`, `HeroVisibilityProvider`'s `heroVisible` state defaults to `false` (needed so every non-home route shows login immediately with zero wiring), but on the home route the hero genuinely is on screen at mount time, so there's a real, if brief, window — before `useReportHeroVisibility`'s `IntersectionObserver` fires its first async callback — where `SiteHeader`'s login control renders visible when it should still be hidden. The old `sticky-header.tsx` didn't have this problem because its own local state defaulted to "hidden" for the whole bar.
+
+Fix so the home route's login control is hidden from the very first paint, without breaking the non-home-route default (which must stay "hero not visible / show login" with no extra wiring on those routes — do not flip the context's default value globally). One reasonable approach: have `useReportHeroVisibility` compute the hero's actual on-screen state synchronously (e.g. via `getBoundingClientRect()` in a `useLayoutEffect`, which runs before the browser paints) and call `setHeroVisible` with that real initial value immediately, instead of relying solely on the `IntersectionObserver`'s asynchronous first callback — keep the observer for all subsequent scroll-driven updates. Use your own judgment on the exact mechanism as long as it eliminates the flash without regressing the non-home-route default.
+
+**Blocked by:** None — can start immediately
+
+**Status:** ready
+
+- [x] On a fresh (non-hydrated-yet, if observable) and immediately-post-hydration load of `/`, the login control (`HeaderAuthControl` inside `SiteHeader`) is hidden from first paint — no visible flash of it appearing then disappearing. Fixed via a `useLayoutEffect` in `useReportHeroVisibility` (`apps/web/lib/hero-visibility-context.tsx`) that synchronously computes the hero's real on-screen state with `getBoundingClientRect()` (mirroring the observer's `rootMargin: "-40px 0px 0px 0px"` logic in a small `isHeroOnScreen` helper) and calls `setHeroVisible` with it immediately — before the browser paints and before the async `IntersectionObserver` fires its first callback.
+- [x] Non-home routes (`/admin`, `/awards`, `/admin/roles`, `/admin/users`) are unaffected — login control still shows immediately with no scroll/wiring needed. `useReportHeroVisibility` is only invoked from `apps/web/app/page.tsx` (home), so the context's default `useState(false)` is untouched and still governs every other route.
+- [x] Existing scroll-based reveal/hide behavior on `/` (hidden → fade in on scroll past hero → hide again on scroll back up) still works exactly as before. The `IntersectionObserver` setup/behavior is unchanged — only the extra synchronous initial call was added; `home-header-scroll.spec.ts` (scroll-down/scroll-up opacity assertions) still passes.
+- [x] Full e2e suite still green after the change. 59/59 passed (see verification below).

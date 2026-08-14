@@ -1,7 +1,7 @@
 import "./globals.css";
-import Link from "next/link";
 import { Providers } from "./providers";
-import { ThemeToggle } from "@/components/theme-toggle";
+import { SiteHeader } from "@/components/site-header";
+import { HeroVisibilityProvider } from "@/lib/hero-visibility-context";
 
 export const metadata = {
   title: "Thanks, Claude",
@@ -16,16 +16,12 @@ export default function RootLayout({
     <html lang="en" suppressHydrationWarning>
       <body>
         <Providers>
-          <header className="flex items-center justify-end gap-4 px-6 py-4">
-            <Link
-              href="/awards"
-              className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-            >
-              Awards
-            </Link>
-            <ThemeToggle />
-          </header>
-          {children}
+          <HeroVisibilityProvider>
+            <SiteHeader />
+            {/* pt-16 clears the fixed SiteHeader (border-b + py-3 + a size-9
+                icon button ≈ 61px tall) — see PROGRESS notes for ticket 01. */}
+            <div className="pt-16">{children}</div>
+          </HeroVisibilityProvider>
         </Providers>
       </body>
     </html>
