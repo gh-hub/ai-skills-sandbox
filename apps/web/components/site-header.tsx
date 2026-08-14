@@ -16,13 +16,19 @@ export function SiteHeader() {
     >
       <span className="font-medium text-foreground">Thanks, Claude</span>
       <div className="flex items-center gap-4">
-        <Link
-          href="/awards"
-          className="text-sm text-muted-foreground hover:text-foreground hover:underline"
-        >
-          Awards
-        </Link>
-        <ThemeToggle />
+        {/* Grouped so both can snap to the far end of the header (via `order`)
+            while the login-control slot below is hidden, and back to their
+            default position once it's shown — no transition on the reorder
+            itself, only on the login slot's own fade below. */}
+        <div className={cn("flex items-center gap-4", heroVisible && "order-last")}>
+          <Link
+            href="/awards"
+            className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+          >
+            Awards
+          </Link>
+          <ThemeToggle />
+        </div>
         {/* Always mounted (not conditionally rendered) so the home route gets a
             real opacity/transform fade — matching today's exact sticky-header.tsx
             reveal — while every other route (heroVisible stays default false)

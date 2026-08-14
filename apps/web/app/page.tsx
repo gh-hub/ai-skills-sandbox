@@ -127,11 +127,11 @@ export default function Home() {
     <div className="flex min-h-screen flex-col">
       <main className="flex-1">
         <section className="mx-auto max-w-3xl px-6 pt-20 sm:pt-28">
-          <div
-            ref={heroRef}
-            className="overflow-hidden rounded-lg border border-border bg-card font-mono text-sm"
-          >
-            <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-3">
+          <div className="overflow-hidden rounded-lg border border-border bg-card font-mono text-sm">
+            <div
+              ref={heroRef}
+              className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-3"
+            >
               <span className="flex gap-1.5" aria-hidden="true">
                 <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
                 <span className="h-2.5 w-2.5 rounded-full bg-muted-foreground/30" />
