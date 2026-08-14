@@ -15,6 +15,8 @@ Extract a complete, unambiguous picture of what we're building. This is the only
 
 Read `PROGRESS/INDEX.md` first. Confirm the current phase is `grill`. If PROGRESS/INDEX.md says a different phase, stop and tell the user — do not proceed.
 
+If the `grill` row's `Started` column is still empty, stamp it now with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`) and set its status to `in-progress` — a direct quick edit, not delegated. Leave it untouched if already set (a resumed session).
+
 Read `CONTEXT.md`. If this is the first session, it will be sparse — that's expected.
 
 If the repo has a domain glossary or ADRs, read them now so you use consistent vocabulary.
@@ -63,7 +65,7 @@ Write to `.gh-workflows/plans/{folder}/grill/`:
 
 Then update the plan files:
 
-- `PROGRESS/INDEX.md`: mark `grill` `done` with today's date in the Phases table, set current phase to `spec`, point "Last session end-state" at the new notes file below.
+- `PROGRESS/INDEX.md`: mark `grill` `done` in the Phases table, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`), set current phase to `spec`, point "Last session end-state" at the new notes file below.
 - `PROGRESS/notes/grill.md`: the session end-state — what was gathered, what's next.
 - `CONTEXT.md`: fill in "What we're building" (one sentence), add key decisions (one line each, link to ADR if one exists), set current phase to `spec`, clear "Load this session" (that's for implement/review sessions).
 - `INDEX.md`: fill in "What we're building", update status to `spec`.

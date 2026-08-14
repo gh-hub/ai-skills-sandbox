@@ -17,6 +17,8 @@ No interview here — this is synthesis of what the grill already captured, same
 
 Read `PROGRESS/INDEX.md` first. Confirm `Workflow` is `quick` and the current phase is `spec`. If `Workflow` is `full`, this plan already escalated — see the "Resuming a plan" note in `SKILL.md`; don't run this phase against it. If the phase says anything other than `spec`, stop and tell the user — do not proceed.
 
+If the `spec` row's `Started` column is still empty, stamp it now with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`) and set its status to `in-progress` — a direct quick edit, not delegated. Leave it untouched if already set (a resumed session).
+
 Read `.gh-workflows/plans/{folder}/CONTEXT.md`, `grill/requirements.md`, `grill/decisions.md`, `grill/glossary.md`, and any ADRs in `grill/`. Do not ask the user questions here — if something is genuinely ambiguous and can't be resolved from the grill output, note it under "Further Notes" as an open question.
 
 If `requirements.md` has an "## Environment notes" section, treat those facts as already confirmed. Explore the codebase for whatever the area being changed still needs beyond that. Use the domain glossary vocabulary throughout.
@@ -111,7 +113,7 @@ Ask whether the granularity feels right and whether blocking edges are correct. 
 Nothing further needs the user — delegate the write-up to a fresh sub-agent (`Agent` tool, `general-purpose` type, not `fork`, `model: haiku` — everything below is already decided, this step only transcribes it into files). Give it the plan folder path, the drafted spec (trimmed template, as written in step 2), the drafted ticket breakdown (title/blocked-by/what-it-delivers for every ticket, from step 3), and these instructions:
 
 1. Write `.gh-workflows/plans/{folder}/spec.md` using the drafted spec verbatim.
-2. Update `PROGRESS/INDEX.md`: flip `Workflow` from `quick` to `full` — this plan is now owned by `gh-dev-workflow`. Mark `spec` `done` with today's date in the Phases table. Leave `tickets` absent from the table for now — `gh-dev-workflow`'s own tickets phase adds ticket rows after its own approval, not before. Set current phase to `tickets`. Point "Last session end-state" at `notes/spec.md`.
+2. Update `PROGRESS/INDEX.md`: flip `Workflow` from `quick` to `full` — this plan is now owned by `gh-dev-workflow`. Mark `spec` `done` in the Phases table, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`). Leave `tickets` absent from the table for now — `gh-dev-workflow`'s own tickets phase adds ticket rows after its own approval, not before. Set current phase to `tickets`. Point "Last session end-state" at `notes/spec.md`.
 3. Write `PROGRESS/notes/spec.md`: the session end-state, plus a `## Draft ticket breakdown` section listing the drafted tickets (title / blocked-by / what it delivers) — this exact section is what `gh-dev-workflow`'s `phases/tickets.md` looks for as its starting point, so the breakdown survives the handoff instead of being redrafted from scratch.
 4. Update `CONTEXT.md`: add link to `spec.md`, set current phase to `tickets`, add one line noting this plan escalated from `gh-dev-quick-workflow` (so a fresh session orients correctly).
 5. Update `INDEX.md`: flip `Workflow` from `quick` to `full` (under "## Status", same as `PROGRESS/INDEX.md`), add link to `spec.md`, update status to `tickets`.
@@ -139,7 +141,7 @@ The approval checkpoint is over — delegate the write-up to a fresh sub-agent (
    - [ ] Acceptance criterion 2
    ```
    No file paths or code snippets unless a prototype produced a snippet that encodes a decision better than prose can.
-3. Update `PROGRESS/INDEX.md`: mark **both** `spec` and `tickets` rows `done` with today's date in the Phases table (they close together — this is the point of the merged checkpoint). Add one `implement/{NN}-{slug}` row per ticket (status `pending`). Set current phase to `implement/01-{slug}`. Set `Current ticket path` to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md`. Point "Last session end-state" at `notes/spec-tickets.md`.
+3. Update `PROGRESS/INDEX.md`: mark **both** `spec` and `tickets` rows `done` in the Phases table (they close together — this is the point of the merged checkpoint), stamping each row's `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`); the `tickets` row has no prior `Started` of its own since this phase covers both at once, so stamp its `Started` to the same timestamp as its `Finished`. Add one `implement/{NN}-{slug}` row per ticket (status `pending`). Set current phase to `implement/01-{slug}`. Set `Current ticket path` to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md`. Point "Last session end-state" at `notes/spec-tickets.md`.
 4. Write `PROGRESS/notes/spec-tickets.md`: the combined session end-state — spec summary and ticket breakdown, what's next.
 5. Update `CONTEXT.md`: fill in "What we're building" (one sentence), add key decisions, add the list of tickets with numbers/slugs, set current phase to `implement`, set current ticket to the full path of ticket `01`.
 6. Update `INDEX.md`: add links to `spec.md` and `tickets/`, update status to `implement`.

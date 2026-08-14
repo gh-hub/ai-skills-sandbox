@@ -130,14 +130,14 @@ grill
 (none — set once, at the start of implement ticket 01)
 
 ## Phases
-| Phase | Status | Date | Notes |
-|---|---|---|---|
-| grill | pending | | |
-| spec | pending | | |
-| tickets | pending | | |
-| implement/01-{slug} | pending | | |
-| implement/02-{slug} | pending | | |
-| review/round-1 | pending | | |
+| Phase | Status | Started | Finished | Notes |
+|---|---|---|---|---|
+| grill | pending | | | |
+| spec | pending | | | |
+| tickets | pending | | | |
+| implement/01-{slug} | pending | | | |
+| implement/02-{slug} | pending | | | |
+| review/round-1 | pending | | | |
 
 ## Last session end-state
 Link to whichever `notes/` file was written most recently — no prose duplicated here.
@@ -148,6 +148,8 @@ Link to whichever `notes/` file was written most recently — no prose duplicate
 `Base branch` is set exactly once, by `implement.md` during ticket `01` (`git rev-parse --abbrev-ref HEAD`), and never touched again — it's what every review round diffs against (`git diff {base-branch}...HEAD`). If it's already set when a session reads this file, leave it alone.
 
 `Workflow` records which skill is driving this plan: `full` for a plan created by (or escalated into) `gh-dev-workflow`, `quick` for one still owned by the separate `gh-dev-quick-workflow` skill. Set once at plan creation by whichever skill creates the folder, and flipped from `quick` to `full` exactly once — when a quick-plan escalates (see that skill's own docs). Never flips back. This is what lets either skill's "resuming a plan" step tell, without guessing from phase-table shape, whether a given plan folder is still its own to run.
+
+`Started`/`Finished` record exactly when a phase's row was entered and completed, to the second (`date +"%Y-%m-%d %H:%M:%S"`). Status values: `pending` (not yet reached) → `in-progress` (a session has begun this row — `Started` gets stamped at this transition) → `done` (or `PASS`/`FAIL` for review rounds, `Finished` stamped at this transition). `Started` is set once, the first time a phase's session reads this file and finds that row still `pending`, and is never overwritten after that — even if the phase spans several resumed sessions (e.g. a ticket picked back up later). `Finished` is set once, when the row reaches its terminal status.
 
 The `Phases` table is the single source of truth for both the checklist (what used to be `- [x] phase (date)` lines) and review-round outcomes (what used to be a separate `## Review rounds` section) — a review round's `Status` column holds `PASS`/`FAIL` directly, so there's no second place recording the same fact.
 

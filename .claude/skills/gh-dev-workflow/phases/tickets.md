@@ -15,6 +15,8 @@ Break the spec into tracer-bullet tickets — vertical slices, each independentl
 
 Read `PROGRESS/INDEX.md` first. Confirm the current phase is `tickets`. If PROGRESS/INDEX.md says a different phase, stop and tell the user — do not proceed.
 
+If the `tickets` row's `Started` column is still empty, stamp it now with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`) and set its status to `in-progress` — a direct quick edit, not delegated. Leave it untouched if already set (a resumed session).
+
 Read:
 - `.gh-workflows/plans/{folder}/CONTEXT.md`
 - `.gh-workflows/plans/{folder}/spec.md`
@@ -74,7 +76,7 @@ No file paths or code snippets unless a prototype produced a snippet that encode
 
 Then update the plan files:
 
-- `PROGRESS/INDEX.md`: mark `tickets` `done` with today's date in the Phases table, add one `implement/{NN}-{slug}` row per ticket (status `pending`), set current phase to `implement/01-{slug}`, set `Current ticket path` to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/tickets.md`.
+- `PROGRESS/INDEX.md`: mark `tickets` `done` in the Phases table, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`), add one `implement/{NN}-{slug}` row per ticket (status `pending`), set current phase to `implement/01-{slug}`, set `Current ticket path` to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/tickets.md`.
 - `PROGRESS/notes/tickets.md`: the session end-state (ticket breakdown summary, what's next).
 - `CONTEXT.md`: add list of tickets with their numbers and slugs, set current phase to `implement`, set current ticket to `.gh-workflows/plans/{folder}/tickets/01-{slug}.md` (full path).
 - `INDEX.md`: add link to tickets/, update status to `implement`.
