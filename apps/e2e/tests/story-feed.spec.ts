@@ -45,8 +45,8 @@ test("submitting a story makes it appear in the feed, and a plain like with no s
   await page.getByLabel("Hours saved (optional)").fill("4");
   await page.getByRole("button", { name: "Submit" }).click();
 
-  // Form collapsing confirms the submission succeeded.
-  await expect(page.getByRole("button", { name: "Share a story" })).toBeVisible();
+  // Modal closing confirms the submission succeeded.
+  await expect(page.getByRole("heading", { name: "Share a story" })).not.toBeVisible();
 
   await expect(feedSection(page)).toContainText(storyText);
   await expect(feedSection(page)).toContainText("4 hours saved");

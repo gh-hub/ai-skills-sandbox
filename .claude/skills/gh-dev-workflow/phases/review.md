@@ -1,6 +1,6 @@
 ---
 name: gh-dev-workflow/review
-description: Phase 5 of gh-dev-workflow. Pass/fail gate — checks the implemented diff against spec.md, checks it for concrete security vulnerabilities, and confirms lint, build, unit/integration tests, and e2e tests all pass. All three checks run in parallel sub-agents that return condensed reports, keeping raw diffs and command output out of the conductor's own context (important since a multi-round review accumulates in the same context). No severity tags, no tech-debt log, no standards/smell pass (that's the separate gh-codereview-workflow-test skill). On failure, writes fix tickets and loops back to implement automatically for up to 2 rounds; round 3+ needs a live user decision. On pass, one live checkpoint to archive. The decision points always run live — never delegated whole — since the phase may need to check in with the user partway through.
+description: Phase 5 of gh-dev-workflow. Pass/fail gate — checks the implemented diff against spec.md, checks it for concrete security vulnerabilities, and confirms lint, build, unit/integration tests, and e2e tests all pass. Spec-match and security run together in one sub-agent (both are diff-reasoning tasks, no long-running commands); checks (lint/build/tests/e2e) runs in a second sub-agent in parallel, since it's the slow one and shouldn't wait on or gate the other. Both return condensed reports, keeping raw diffs and command output out of the conductor's own context (important since a multi-round review accumulates in the same context). No severity tags, no tech-debt log, no standards/smell pass (that's the separate gh-codereview-workflow-test skill). On failure, writes fix tickets and loops back to implement automatically for up to 2 rounds; round 3+ needs a live user decision. On pass, one live checkpoint to archive. The decision points always run live — never delegated whole — since the phase may need to check in with the user partway through.
 ---
 
 # Review Phase
@@ -27,11 +27,13 @@ Confirm that diff is non-empty without reading its contents into your own contex
 
 ### 3. Check spec match, security, and that it works
 
-Spawn three sub-agents in parallel (`Agent` tool, `general-purpose` type, Bash access, one message with all three calls — they're independent). This keeps every diff read and every command's raw output inside disposable sub-agent context — none of it should land in your own context directly; you only ever see each sub-agent's condensed report.
+Spawn two sub-agents in parallel (`Agent` tool, `general-purpose` type, Bash access, one message with both calls — they're independent). This keeps every diff read and every command's raw output inside disposable sub-agent context — none of it should land in your own context directly; you only ever see each sub-agent's condensed report.
 
-**Spec-match sub-agent** — give it the full contents of `spec.md` and this brief: "Run `git diff {base-branch}...HEAD` yourself (do not ask me for it), then report: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Quote the spec line for each finding. No severity tags needed — every finding here is a gap that must close. Under 300 words."
+**Spec-match + security sub-agent** — give it the full contents of `spec.md` and this brief: "Run `git diff {base-branch}...HEAD` yourself (do not ask me for it), then report on two separate things:
 
-**Security sub-agent** — give it this brief: "Run `git diff {base-branch}...HEAD` yourself (do not ask me for it), then check the changed lines against this baseline:
+Part A — spec match: (a) requirements missing or partial; (b) behavior in the diff not asked for (scope creep); (c) requirements that look implemented but are wrong. Quote the spec line for each finding. No severity tags needed — every finding here is a gap that must close.
+
+Part B — security: check the changed lines against this baseline:
   - **Injection** — unsanitized input reaching a SQL/NoSQL/command/LDAP/template sink
   - **Broken authentication/session handling** — missing auth checks, weak/predictable session tokens, session fixation
   - **Broken access control** — missing authorization checks, IDOR, privilege escalation paths
@@ -46,7 +48,9 @@ Spawn three sub-agents in parallel (`Agent` tool, `general-purpose` type, Bash a
   - **Cryptographic issues** — weak/broken algorithms (e.g. MD5/SHA1 for passwords, ECB mode), hardcoded keys/IVs, insufficient randomness for tokens/nonces
   - **CSRF** — state-changing endpoints missing CSRF protection where the framework requires it
 
-  Report only concrete, exploitable issues introduced by this diff — not general hardening advice or anything outside the changed lines. For each finding: name the vulnerability class, quote the vulnerable hunk, and state the concrete exploit scenario (what input or actor triggers it, what breaks). No severity tags needed — every finding here is a vulnerability that must close before merge, same as a spec gap. Under 300 words."
+  Report only concrete, exploitable issues introduced by this diff — not general hardening advice or anything outside the changed lines. For each finding: name the vulnerability class, quote the vulnerable hunk, and state the concrete exploit scenario (what input or actor triggers it, what breaks). No severity tags needed — every finding here is a vulnerability that must close before merge, same as a spec gap.
+
+  Report Part A and Part B under separate headings so their findings can't be confused with each other. Under 500 words total."
 
 **Checks sub-agent** — give it this brief: "Run each of the following via Bash, in this order, stopping to record a failure but still running the rest (don't bail on the first red check — your report should show everything that's wrong at once):
 
@@ -65,18 +69,18 @@ Each sub-agent's report is the only thing that should reach your own context —
 
 ### 4. Collect results
 
-Wait for all three sub-agents. If any command in the checks sub-agent's report was genuinely ambiguous and it had to guess, record that choice in `CONTEXT.md` now so later rounds don't re-guess.
+Wait for both sub-agents. If any command in the checks sub-agent's report was genuinely ambiguous and it had to guess, record that choice in `CONTEXT.md` now so later rounds don't re-guess.
 
 ### 5. Decide pass/fail
 
-**PASS** = the spec-match sub-agent found no findings AND the security sub-agent found no findings AND every check in the checks sub-agent's report that applies to this project (lint, build, unit/integration tests, e2e tests) passes.
-**FAIL** = otherwise — record which specific check(s) failed, including which sub-agent(s) reported findings.
+**PASS** = the spec-match + security sub-agent found no findings in either Part A or Part B AND every check in the checks sub-agent's report that applies to this project (lint, build, unit/integration tests, e2e tests) passes.
+**FAIL** = otherwise — record which specific check(s) failed, including which part(s) of which sub-agent's report had findings.
 
 ### 6a. On FAIL
 
 Delegate the write-up (per the Delegation discipline in `SKILL.md`, this phase always runs live, but the mechanical tail below can go to a fresh `general-purpose` sub-agent, `model: haiku` — the findings below were already generated by the step-3 sub-agents, this step only reformats them into files and tickets):
 
-1. Write `.gh-workflows/plans/{folder}/review/round-{N}/findings.md` — the spec sub-agent's findings verbatim under a "Spec match" heading, the security sub-agent's findings verbatim under a "Security" heading, plus the checks sub-agent's checklist (lint / build / unit-integration / e2e) with pass/fail and the failure output for any that failed. Mark any check that failed once but passed on rerun as `flaky` in this checklist, not `fail`.
+1. Write `.gh-workflows/plans/{folder}/review/round-{N}/findings.md` — the spec-match + security sub-agent's Part A verbatim under a "Spec match" heading, its Part B verbatim under a "Security" heading, plus the checks sub-agent's checklist (lint / build / unit-integration / e2e) with pass/fail and the failure output for any that failed. Mark any check that failed once but passed on rerun as `flaky` in this checklist, not `fail`.
 2. Write one fix ticket per finding (spec and security alike) to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/`, numbered from `01`, same format as `phases/tickets.md`. Tag each ticket's title with its source (`[spec]` / `[security]`) so a security fix isn't mistaken for a feature gap.
 3. Update `PROGRESS/INDEX.md` first, then `CONTEXT.md` to match:
    - `PROGRESS/INDEX.md`: mark `review/round-{N}`'s row `FAIL` in the Phases table, stamping `Finished` with the current timestamp (`date +"%Y-%m-%d %H:%M:%S"`), set current phase to `implement`, set `Current ticket path` to `.gh-workflows/plans/{folder}/review/round-{N}/tickets/01-{slug}.md`, point "Last session end-state" at `notes/review-round-{N}.md`.
