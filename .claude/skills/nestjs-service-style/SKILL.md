@@ -24,6 +24,7 @@ Apply these rules when generating, reviewing, or refactoring NestJS code.
 - Validate every environment variable during application startup with Joi or Zod.
 - Prevent server startup when a mandatory environment variable is missing or invalid.
 - Do not access `process.env` directly outside the configuration layer.
+- Never pass an object into a function so that function can mutate it. A function that updates an object takes the object as an argument and returns the updated object; the caller applies the update (e.g. reassignment or explicit persistence).
 
 ## Detailed guidance
 

@@ -1,14 +1,17 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { AuthModal } from "@/components/auth-modal";
 import { Button } from "@/components/ui/button";
+import { LogoutConfirmModal } from "@/components/logout-confirm-modal";
 import { UserAvatar } from "@/components/user-avatar";
 import { isAdmin, useLogout, useMe } from "@/lib/api-client/auth";
 
 export function HeaderAuthControl() {
   const me = useMe();
   const logout = useLogout();
+  const [isLogoutModalOpen, setIsLogoutModalOpen] = useState(false);
 
   if (me.isLoading || me.data === undefined) {
     return null;
@@ -41,13 +44,18 @@ export function HeaderAuthControl() {
         </ul>
       )}
       <Button
-        onClick={() => logout.mutate()}
+        onClick={() => setIsLogoutModalOpen(true)}
         disabled={logout.isPending}
         variant="ghost"
         size="sm"
       >
         Log out
       </Button>
+      <LogoutConfirmModal
+        open={isLogoutModalOpen}
+        onOpenChange={setIsLogoutModalOpen}
+        logout={logout}
+      />
     </div>
   );
 }

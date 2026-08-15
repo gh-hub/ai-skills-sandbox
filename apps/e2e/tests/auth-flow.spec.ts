@@ -1,6 +1,6 @@
 import { randomUUID } from "node:crypto";
 import { expect, test, type Page } from "@playwright/test";
-import { grantRole, loginToRefreshSession } from "./helpers";
+import { grantRole, loginToRefreshSession, logout } from "./helpers";
 
 const PASSWORD = "hunter22";
 
@@ -81,7 +81,7 @@ test("logging in with an existing account, then logging out, restores the Login 
     siteHeader(page).getByRole("button", { name: "Log out" })
   ).toBeVisible();
 
-  await siteHeader(page).getByRole("button", { name: "Log out" }).click();
+  await logout(siteHeader(page).getByRole("button", { name: "Log out" }));
   await expect(
     siteHeader(page).getByRole("button", { name: "Login" })
   ).toBeVisible();
@@ -93,6 +93,64 @@ test("logging in with an existing account, then logging out, restores the Login 
 
   await expect(
     siteHeader(page).getByRole("button", { name: "Log out" })
+  ).toBeVisible();
+});
+
+test("clicking Log out shows a confirm dialog; Cancel keeps the session, Yes, log out ends it", async ({
+  page,
+}) => {
+  const email = uniqueEmail();
+
+  await gotoHomeWithHeaderAuthVisible(page);
+  await siteHeader(page).getByRole("button", { name: "Login" }).click();
+  await page.getByRole("tab", { name: "Create account" }).click();
+  await page.getByLabel("Name").fill("Ada Byron");
+  await page.getByLabel("Email").fill(email);
+  await page.getByLabel("Password").fill("hunter22");
+  await page.getByRole("button", { name: "Create account" }).click();
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Log out" })
+  ).toBeVisible();
+
+  await siteHeader(page).getByRole("button", { name: "Log out" }).click();
+  await expect(
+    page.getByRole("heading", { name: "Log out?" })
+  ).toBeVisible();
+  await expect(
+    page.getByText("Are you sure you want to log out?")
+  ).toBeVisible();
+
+  await page.getByRole("button", { name: "Cancel" }).click();
+  await expect(page.getByRole("heading", { name: "Log out?" })).not.toBeVisible();
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Log out" })
+  ).toBeVisible();
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Login" })
+  ).not.toBeVisible();
+
+  // The real logout endpoint normally resolves too fast in this test
+  // environment to reliably observe the mutation's pending window, so this
+  // route is intercepted and held briefly before continuing to the network
+  // — a standard Playwright pattern for making a fast pending/loading state
+  // deterministically observable, without adding artificial delays to the
+  // app itself. Written inline here (not via the shared `logout` helper)
+  // since this is the only test that needs to inspect the pending state.
+  await page.route("**/api/auth/logout", async (route) => {
+    await new Promise((resolve) => setTimeout(resolve, 500));
+    await route.continue();
+  });
+
+  await siteHeader(page).getByRole("button", { name: "Log out" }).click();
+  await page.getByRole("button", { name: "Yes, log out" }).click();
+
+  await expect(page.getByRole("button", { name: "Cancel" })).toBeDisabled();
+  await expect(
+    page.getByRole("button", { name: "Yes, log out" })
+  ).toBeDisabled();
+
+  await expect(
+    siteHeader(page).getByRole("button", { name: "Login" })
   ).toBeVisible();
 });
 
@@ -111,7 +169,7 @@ test("logging in with the wrong password shows a generic error", async ({
   await expect(
     siteHeader(page).getByRole("button", { name: "Log out" })
   ).toBeVisible();
-  await siteHeader(page).getByRole("button", { name: "Log out" }).click();
+  await logout(siteHeader(page).getByRole("button", { name: "Log out" }));
 
   await siteHeader(page).getByRole("button", { name: "Login" }).click();
   await page.getByLabel("Email").fill(email);
@@ -136,7 +194,7 @@ test("signing up with an already-registered email shows a conflict error", async
   await expect(
     siteHeader(page).getByRole("button", { name: "Log out" })
   ).toBeVisible();
-  await siteHeader(page).getByRole("button", { name: "Log out" }).click();
+  await logout(siteHeader(page).getByRole("button", { name: "Log out" }));
 
   await siteHeader(page).getByRole("button", { name: "Login" }).click();
   await page.getByRole("tab", { name: "Create account" }).click();

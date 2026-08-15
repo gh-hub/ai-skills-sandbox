@@ -17,13 +17,39 @@ Delegate creating the plan folder: spawn a fresh `general-purpose` sub-agent (vi
 
 ```
 .gh-workflows/plans/YYYYMMDD_HHMMSS-{name}/
-  INDEX.md
-  CONTEXT.md
   PROGRESS/
     INDEX.md
 ```
 
-using the templates in `../gh-dev-workflow/plan-structure.md` (`Workflow: quick`, not `full`, in both `INDEX.md` and `PROGRESS/INDEX.md` — this is the one field this skill sets differently from the template default), with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `.gh-workflows/plans/` always lives at the project's repository root — same rules as `gh-dev-workflow` (never nested under a subdirectory, even in a monorepo). This is the *same* plans root `gh-dev-workflow` uses — a quick-plan and a full plan live side by side and are structurally interchangeable. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `../gh-dev-workflow/phases/grill.md` and following it (see "Adapting referenced phase files" below).
+That's the only file created up front — this skill does not create `CONTEXT.md` or a top-level `INDEX.md` at plan creation (see "No CONTEXT.md / INDEX.md / notes files" below for why). `PROGRESS/INDEX.md` follows the same shape as `../gh-dev-workflow/plan-structure.md`'s template, with two differences: `Workflow: quick`, not `full`; and `## Last session end-state` holds one inline sentence, never a link to a `notes/` file (this skill doesn't create that folder). Use this template:
+
+```markdown
+# Progress: {plan name}
+
+## Workflow
+quick
+
+## Current phase
+grill
+
+## Current ticket path
+(none — set to full file path when an implement phase starts)
+
+## Base branch
+(none — set once, at the start of implement ticket 01)
+
+## Phases
+| Phase | Status | Started | Finished | Notes |
+|---|---|---|---|---|
+| grill | pending | | | |
+| spec | pending | | | |
+| tickets | pending | | | |
+
+## Last session end-state
+(none yet)
+```
+
+with the timestamp taken from `date +%Y%m%d_%H%M%S` run at creation time. `.gh-workflows/plans/` always lives at the project's repository root — same rules as `gh-dev-workflow` (never nested under a subdirectory, even in a monorepo). This is the *same* plans root `gh-dev-workflow` uses — a quick-plan and a full plan live side by side and are structurally interchangeable. Have it report back the exact folder path it created. Then begin the **grill phase** by reading `../gh-dev-workflow/phases/grill.md` and following it (see "Adapting referenced phase files" below).
 
 ## Resuming a plan
 
@@ -49,13 +75,21 @@ Phase-table strings in `PROGRESS/INDEX.md` are identical to `gh-dev-workflow`'s 
 
 ## Adapting referenced phase files
 
-`grill.md`, `implement.md`, and `review.md` are read from `gh-dev-workflow`'s folder verbatim — they were written for that skill, so two adaptations apply whenever you follow one of them under this skill:
+`grill.md`, `implement.md`, and `review.md` are read from `gh-dev-workflow`'s folder verbatim — they were written for that skill, so these adaptations apply whenever you follow one of them under this skill:
 
 1. **Resolve their internal paths against `gh-dev-workflow`, not this skill.** When one of these files mentions a path relative to "this skill's folder" (e.g. `phases/grilling.md`, `coding-rules/INDEX.md`), that always means `../gh-dev-workflow/phases/grilling.md`, `../gh-dev-workflow/coding-rules/INDEX.md` — never a path under `gh-dev-quick-workflow/` itself, since those files don't exist here.
 2. **Ignore their "hand off" step's session-restart wording; substitute this skill's own session model.** Lines like *"Start a new session and run `/gh-dev-workflow` to continue"* assume `gh-dev-workflow`'s default multi-session model, which this skill doesn't use (see "Session model" below). Wherever a referenced file's final hand-off step tells the user to start a new session, do this instead:
    - If nothing needs the user (the next phase is fully delegable): don't stop at all — proceed straight into the next phase in the same turn (delegating its mechanical work per usual), after a one-line status update in narration mode (see "Progress narration" below), or silently in a suppressed-narration run.
    - If a real checkpoint follows (ticket approval, review pass, round 3+ decision): stop and surface that checkpoint exactly as the file describes — this part of their wording is unaffected.
 3. **These files are always run "live."** Where a referenced file offers a branch for "if you were yourself spawned as a sub-agent to run this whole phase, skip the extra hop" — that branch never applies here. This skill's conductor is always the live session in conversation with the user; it never spawns itself away to run a whole phase unattended. Always take the "running this phase live" branch, which delegates only the phase's mechanical tail to a fresh sub-agent.
+4. **Skip any step that reads or writes `CONTEXT.md`, a top-level `INDEX.md`, or a `PROGRESS/notes/{phase}.md` file.** This skill doesn't create or maintain any of those (see "No CONTEXT.md / INDEX.md / notes files" below) — `PROGRESS/INDEX.md` is the only state file. Wherever a referenced file says to read `CONTEXT.md` for orientation, read `PROGRESS/INDEX.md` and, where relevant, `spec.md` or the current ticket file directly instead — between them that's everything `CONTEXT.md` would have told you, for a plan this size. Wherever one says to record something "in `CONTEXT.md` so later rounds don't ask again" (e.g. review.md's ambiguous-test-command case), record it instead as a short phrase in that `Phases` row's `Notes` column in `PROGRESS/INDEX.md`. Wherever one says to write or point at a `notes/{phase}.md` file, write that same content as one inline sentence directly into `PROGRESS/INDEX.md`'s `## Last session end-state` section instead of a separate linked file.
+5. **Trim grill's output.** `grill.md`'s own step 4 normally writes `requirements.md`, `decisions.md`, `glossary.md`, and one `ADR-NNN.md` per architectural decision. Under this skill, default to `requirements.md` only — skip the other three unless the grill genuinely produced something that fits their narrow purpose (a decision with real lasting architectural consequences, for `ADR-NNN.md`; a term that would otherwise be ambiguous downstream, for `glossary.md`). The default is to skip all three, not to write them thin — a formal decision log or domain glossary is disproportionate to a 1-2 ticket fix.
+
+## No CONTEXT.md / INDEX.md / notes files
+
+This skill's plans have a single state file: `PROGRESS/INDEX.md`. Unlike a `gh-dev-workflow` plan, there is no top-level `INDEX.md`, no `CONTEXT.md`, and no `PROGRESS/notes/` folder — those exist in the full workflow to let a multi-session, multi-ticket effort resume cold across sessions and hand off context to a fresh person. A 1-2 ticket fast fix runs single-session (see "Session model" below) and doesn't need three files restating the same phase/ticket status in prose; `PROGRESS/INDEX.md`'s own `Notes` column and `Last session end-state` line carry whatever's actually load-bearing.
+
+The one exception: if a plan escalates to `gh-dev-workflow` (see "Ticket cap and escalation"), `CONTEXT.md`, `INDEX.md`, and `PROGRESS/notes/spec.md` get created for the first time as part of that handoff — `gh-dev-workflow` expects them from that point on. `phases/spec-tickets.md`'s escalation step (6a) covers exactly what to create.
 
 ## Ticket cap and escalation
 
@@ -96,17 +130,19 @@ A `review` failure at round 1 or 2 needs no user input — it auto-loops back to
 
 ## Delegation discipline
 
-Every phase's mechanical write-up (writing files, updating `PROGRESS/INDEX.md`, `PROGRESS/notes/{phase-slug}.md`, `CONTEXT.md`/`INDEX.md`) is delegated to a fresh `general-purpose` sub-agent once no further user input is needed for that step — same pattern `gh-dev-workflow` uses, and the reason "single session" is viable at all: it keeps tool-call noise and file-exploration output out of the conductor's own context. This applies uniformly here (no live/spawned-sub-agent branching — see "Adapting referenced phase files" point 3).
+Every phase's mechanical write-up (writing files, updating `PROGRESS/INDEX.md`) is delegated to a fresh `general-purpose` sub-agent once no further user input is needed for that step — same pattern `gh-dev-workflow` uses, and the reason "single session" is viable at all: it keeps tool-call noise and file-exploration output out of the conductor's own context. This applies uniformly here (no live/spawned-sub-agent branching — see "Adapting referenced phase files" point 3). There's less to write per phase than in `gh-dev-workflow` (see "No CONTEXT.md / INDEX.md / notes files" above) — the delegation is still worth doing, since even a `PROGRESS/INDEX.md`-only update involves reading the file, editing a table, and re-saving it, which is exactly the kind of mechanical noise that shouldn't sit in the conductor's own context.
 
 ## Source of truth
 
-**PROGRESS/INDEX.md is always the source of truth for phase and ticket state.** Same rule as `gh-dev-workflow` — `CONTEXT.md` and `INDEX.md` are derived views; `PROGRESS/notes/` files are historical write-ups, never state.
+**PROGRESS/INDEX.md is the only state file — there is nothing else to derive it from.** Unlike `gh-dev-workflow`, this skill has no `CONTEXT.md` or top-level `INDEX.md` to keep in sync (see "No CONTEXT.md / INDEX.md / notes files" above) — one file, updated directly, is the entire state model.
 
 ## Reference
 
-See `../gh-dev-workflow/plan-structure.md` for the canonical definition of every file and folder in a plan — this skill uses the identical structure, with two deltas:
+See `../gh-dev-workflow/plan-structure.md` for the canonical definition of every file and folder in a plan — this skill uses that structure with these deltas:
 
 1. `spec.md` omits the **User Stories** section (Problem Statement, Solution, Implementation Decisions, Testing Decisions, Out of Scope, Further Notes only) — see `phases/spec-tickets.md` for the template.
 2. The initial ticket breakdown is capped at 1-2 tickets, enforced during the spec+tickets phase itself, not by the plan structure.
+3. No `CONTEXT.md`, top-level `INDEX.md`, or `PROGRESS/notes/` folder — see "No CONTEXT.md / INDEX.md / notes files" above. `PROGRESS/INDEX.md` follows the canonical template except `## Last session end-state` holds one inline sentence, never a notes-file link.
+4. `grill/` normally contains up to four files; this skill defaults to `requirements.md` only, skipping `decisions.md`/`glossary.md`/`ADR-NNN.md` unless one is genuinely earned — see "Adapting referenced phase files" point 5.
 
 Coding rules are loaded exactly as `../gh-dev-workflow/phases/implement.md` and `../gh-dev-workflow/phases/review.md` already specify (they point at `gh-dev-workflow`'s own `coding-rules/` folder by name) — no separate coding-rules setup needed for this skill.
