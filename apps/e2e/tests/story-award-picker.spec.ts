@@ -35,7 +35,7 @@ test("selecting awards on the story form shows the resulting badges on the feed"
   await page.getByLabel(second.title).check();
   await page.getByRole("button", { name: "Submit" }).click();
 
-  await expect(page.getByRole("button", { name: "Share a story" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Share a story" })).not.toBeVisible();
 
   const section = feedSection(page);
   await expect(section).toContainText(storyText);
@@ -57,7 +57,7 @@ test("submitting the story form with no awards selected attaches no badges", asy
   await page.getByLabel("Story (optional)").fill(storyText);
   await page.getByRole("button", { name: "Submit" }).click();
 
-  await expect(page.getByRole("button", { name: "Share a story" })).toBeVisible();
+  await expect(page.getByRole("heading", { name: "Share a story" })).not.toBeVisible();
 
   const section = feedSection(page);
   await expect(section).toContainText(storyText);

@@ -1,9 +1,11 @@
 import "reflect-metadata";
 import { NestFactory } from "@nestjs/core";
 import { ValidationPipe } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
 import { DocumentBuilder, SwaggerModule } from "@nestjs/swagger";
 import cookieParser from "cookie-parser";
 import { AppModule } from "./app.module";
+import type { Env } from "./config/env.schema";
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -15,7 +17,8 @@ async function bootstrap() {
   const document = SwaggerModule.createDocument(app, config);
   SwaggerModule.setup("docs", app, document);
 
-  const port = process.env.PORT ?? 3000;
+  const configService = app.get<ConfigService<Env, true>>(ConfigService);
+  const port = configService.getOrThrow("PORT", { infer: true });
   await app.listen(port);
 }
 

@@ -23,6 +23,38 @@ export function buildTransactionKey(
 
 Do not keep this as a private class method merely because it is currently called from one service.
 
+## Never mutate a passed-in object
+
+A function must not accept an object and update it in place. If a function's purpose is to update an object, it takes that object as an argument and returns the updated object. The caller performs the actual update by using the return value — reassigning a variable, persisting it, or passing it onward.
+
+Avoid:
+
+```ts
+function markApproved(transaction: Transaction): void {
+  transaction.status = TransactionStatus.APPROVED;
+  transaction.approvedAt = new Date();
+}
+
+markApproved(transaction);
+// transaction was mutated as a side effect
+```
+
+Preferred:
+
+```ts
+function withApproval(transaction: Transaction): Transaction {
+  return {
+    ...transaction,
+    status: TransactionStatus.APPROVED,
+    approvedAt: new Date(),
+  };
+}
+
+transaction = withApproval(transaction);
+```
+
+This applies to standalone utility functions and to class methods alike. It does not apply to methods whose explicit responsibility is persistence (e.g. a repository `save`/`update` call), since those own the side effect rather than disguising it as a pure-looking function call.
+
 ## Keep orchestration in services
 
 Do not move logic to a utility when it represents application orchestration or depends on repositories, clients, configuration, logging, or other injected collaborators.

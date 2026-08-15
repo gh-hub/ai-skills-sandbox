@@ -9,6 +9,7 @@ Ships with the gh-dev-workflow skill — same across every project it's installe
 | [general.md](general.md) | file | Always |
 | [node-typescript-docker.md](node-typescript-docker.md) | file | Node/TypeScript apps (NestJS, Next.js) built inside Docker |
 | [nestjs-service-style](../../nestjs-service-style/SKILL.md) | skill | Ticket touches NestJS controllers, services, configuration, or utilities |
+| [nextjs-app-style](../../nextjs-app-style/SKILL.md) | skill | Ticket touches Next.js app-router components, forms, data-fetching, or shadcn/ui + Tailwind styling |
 
 A `file` row is a plain reference doc — read it. A `skill` row is a real Claude Code skill — invoke it with the `Skill` tool (it loads its own `SKILL.md` and pulls in its own reference files as needed), don't just `Read` it.
 

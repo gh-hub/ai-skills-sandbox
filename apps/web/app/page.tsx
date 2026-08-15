@@ -3,20 +3,13 @@
 import { useRef, useState } from "react";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
-import { z } from "zod";
-import { AwardCheckboxList } from "@/components/award-checkbox-list";
 import { HeaderAuthControl } from "@/components/header-auth-control";
-import { Button } from "@/components/ui/button";
 import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
-import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
+  ShareStoryModal,
+  storyFormSchema,
+  type StoryFormValues,
+} from "@/components/share-story-modal";
+import { Button } from "@/components/ui/button";
 import { SparkMark } from "@/components/spark-mark";
 import { StatsBand } from "@/components/stats-band";
 import { StoryFeed } from "@/components/story-feed";
@@ -26,19 +19,6 @@ import {
   useSubmitLike,
 } from "@/lib/api-client/likes";
 import { useReportHeroVisibility } from "@/lib/hero-visibility-context";
-
-const storyFormSchema = z.object({
-  story: z.string().optional(),
-  hoursSaved: z
-    .string()
-    .optional()
-    .refine((value) => !value || value.trim() === "" || Number(value) >= 0, {
-      message: "Hours saved must be zero or greater",
-    }),
-  awardIds: z.array(z.string()).optional(),
-});
-
-type StoryFormValues = z.infer<typeof storyFormSchema>;
 
 function renderLikeCount(likeCount: ReturnType<typeof useLikeCount>) {
   if (likeCount.isError) {
@@ -90,7 +70,7 @@ function renderHeroStatsLine(stats: ReturnType<typeof useLikesStats>) {
 }
 
 export default function Home() {
-  const [isExpanded, setIsExpanded] = useState(false);
+  const [isStoryModalOpen, setIsStoryModalOpen] = useState(false);
   const heroRef = useRef<HTMLDivElement>(null);
 
   const likeCount = useLikeCount();
@@ -117,7 +97,7 @@ export default function Home() {
       {
         onSuccess: () => {
           form.reset();
-          setIsExpanded(false);
+          setIsStoryModalOpen(false);
         },
       }
     );
@@ -216,69 +196,19 @@ export default function Home() {
 
           <div className="w-full max-w-md">
             <Button
-              onClick={() => setIsExpanded((prev) => !prev)}
+              onClick={() => setIsStoryModalOpen(true)}
               variant="outline"
             >
-              {isExpanded ? "Hide story" : "Share a story"}
+              Share a story
             </Button>
 
-            {isExpanded && (
-              <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(handleStorySubmit)}
-                  className="mt-4 flex flex-col gap-4 rounded-lg border border-border bg-card p-6 text-left shadow-xs"
-                >
-                  {storySubmit.isError && (
-                    <p role="alert" className="text-sm text-destructive">
-                      Couldn&apos;t submit your story. Please try again.
-                    </p>
-                  )}
-                  <FormField
-                    control={form.control}
-                    name="story"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Story (optional)</FormLabel>
-                        <FormControl>
-                          <Textarea {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="hoursSaved"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Hours saved (optional)</FormLabel>
-                        <FormControl>
-                          <Input type="number" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="awardIds"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Awards (optional)</FormLabel>
-                        <AwardCheckboxList
-                          selectedIds={field.value ?? []}
-                          onChange={field.onChange}
-                        />
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit" disabled={storySubmit.isPending}>
-                    Submit
-                  </Button>
-                </form>
-              </Form>
-            )}
+            <ShareStoryModal
+              open={isStoryModalOpen}
+              onOpenChange={setIsStoryModalOpen}
+              form={form}
+              storySubmit={storySubmit}
+              onSubmit={handleStorySubmit}
+            />
           </div>
         </section>
 

@@ -16,6 +16,7 @@ Use this checklist after generating or refactoring NestJS code.
 - Is each utility located at the narrowest shared directory level?
 - Are utility files named by responsibility rather than `helpers` or `utils`?
 - Does any utility file mix unrelated concerns?
+- Does any function mutate an object passed into it instead of returning the updated object?
 
 ## Controllers and services
 

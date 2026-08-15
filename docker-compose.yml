@@ -20,6 +20,7 @@ services:
       context: .
       dockerfile: apps/api/Dockerfile
     environment:
+      NODE_ENV: production
       DATABASE_URL: postgres://${POSTGRES_USER:-thanks_claude}:${POSTGRES_PASSWORD:-thanks_claude}@postgres:5432/${POSTGRES_DB:-thanks_claude}
       PORT: 3000
       JWT_SECRET: dev-only-jwt-secret-change-me

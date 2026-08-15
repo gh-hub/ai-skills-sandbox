@@ -1,6 +1,6 @@
 import { execFileSync } from "node:child_process";
 import path from "node:path";
-import type { Page } from "@playwright/test";
+import type { Locator, Page } from "@playwright/test";
 import { COMPOSE_ARGS, COMPOSE_ENV, POSTGRES_DB, POSTGRES_USER } from "../e2e.config";
 
 const REPO_ROOT = path.resolve(__dirname, "..", "..", "..");
@@ -43,4 +43,17 @@ export async function loginToRefreshSession(
   password: string
 ): Promise<void> {
   await page.request.post("/api/auth/login", { data: { email, password } });
+}
+
+// Clicks "Log out" and confirms the "Yes, log out" dialog that now gates it
+// (ticket 01) — callers that just want to end up logged out should use this
+// instead of the bare "Log out" click. Takes the already-scoped "Log out"
+// button locator (e.g. `siteHeader(page).getByRole("button", { name: "Log
+// out" })`) rather than a bare Page, since some pages render more than one
+// HeaderAuthControl at once and a page-wide role query would be a
+// strict-mode violation; the confirm button lives in a dialog portal outside
+// that scope, so it's located via the locator's owning page instead.
+export async function logout(logoutButton: Locator): Promise<void> {
+  await logoutButton.click();
+  await logoutButton.page().getByRole("button", { name: "Yes, log out" }).click();
 }

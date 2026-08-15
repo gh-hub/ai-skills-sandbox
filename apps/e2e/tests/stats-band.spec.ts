@@ -32,8 +32,8 @@ test("stats band reflects a submitted story's hours saved without a page reload"
   await page.getByLabel("Hours saved (optional)").fill("6");
   await page.getByRole("button", { name: "Submit" }).click();
 
-  // Form collapsing confirms the submission succeeded, without reloading the page.
-  await expect(page.getByRole("button", { name: "Share a story" })).toBeVisible();
+  // Modal closing confirms the submission succeeded, without reloading the page.
+  await expect(page.getByRole("heading", { name: "Share a story" })).not.toBeVisible();
 
   const after = await getStats(page);
   expect(after.totalLikes).toBe(before.totalLikes + 1);
